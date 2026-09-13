@@ -1,0 +1,30 @@
+{
+  "name": "kanafall",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --host 127.0.0.1",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "test": "node --experimental-test-isolation=none --test tests/*.test.ts",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "nuxt": "^3.17.5",
+    "vue": "^3.5.16"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@types/node": "^22.15.30",
+    "eslint": "^9.28.0",
+    "eslint-plugin-vue": "^10.2.0",
+    "prettier": "^3.9.6",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.34.0",
+    "vue-tsc": "^2.2.10"
+  }
+}
