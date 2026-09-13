@@ -160,20 +160,16 @@ button:active {
   width: 140px;
   margin: auto;
 }
-.spirit svg {
+.spirit img {
   width: 100%;
-  overflow: visible;
+  height: auto;
+  display: block;
   position: relative;
 }
 .spirit-body {
   animation: bob 2.8s ease-in-out infinite;
-  transform-origin: 70px 100px;
-}
-.staff {
-  transform-origin: 105px 110px;
-}
-.attack .staff {
-  animation: cast 0.25s ease-out;
+  transform-origin: 50% 78%;
+  filter: drop-shadow(0 9px 9px #04141680);
 }
 .attack .spirit-body {
   animation: cast 0.25s ease-out;
@@ -193,12 +189,28 @@ button:active {
   background: #c3ee8833;
   filter: blur(25px);
 }
+.spirit-shadow {
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: 3%;
+  height: 10%;
+  border-radius: 50%;
+  background: #061719aa;
+  filter: blur(6px);
+}
 .evolved .spirit-aura {
   background: #c4e78066;
   box-shadow: 0 0 35px #bddf72;
 }
+.evolved .spirit-body {
+  filter: saturate(1.08) drop-shadow(0 0 8px #c4e78055) drop-shadow(0 9px 9px #04141680);
+}
 .radiant .spirit-aura {
   background: #bea1ff88;
+}
+.radiant .spirit-body {
+  filter: saturate(1.12) drop-shadow(0 0 13px #bea1ff88) drop-shadow(0 9px 9px #04141680);
 }
 .input-dock {
   position: absolute;
@@ -273,7 +285,7 @@ button:active {
   background: #dcf6b7;
 }
 .menu-card > .spirit {
-  width: 150px;
+  width: 170px;
 }
 .menu-card > .primary {
   margin-top: 18px;
@@ -285,7 +297,7 @@ button:active {
 }
 @keyframes cast {
   50% {
-    transform: rotate(-20deg) translateY(-5px);
+    transform: rotate(-5deg) translateY(-8px) scale(1.06);
   }
 }
 @keyframes impact {
@@ -462,7 +474,7 @@ button:active {
 }
 .player {
   bottom: 13px;
-  width: 118px !important;
+  width: 148px !important;
 }
 .hero-name {
   position: absolute;
@@ -718,7 +730,7 @@ button:active {
   margin-top: 5px;
 }
 .companion-stage > .spirit {
-  width: 130px;
+  width: 174px;
   z-index: 1;
 }
 .companion-stage > span {
@@ -863,7 +875,7 @@ button:active {
   margin: 18px 0;
 }
 .pause-card > .spirit {
-  width: 110px;
+  width: 138px;
 }
 .pause-card > p:not(.eyebrow) {
   font-size: 14px;
@@ -1272,7 +1284,7 @@ select {
     margin: 9px 0 13px;
   }
   .companion-stage > .spirit {
-    width: 112px;
+    width: 142px;
   }
   .menu-card .menu-subtitle {
     font-size: 14px;

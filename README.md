@@ -2,7 +2,7 @@
 
 **Web:** https://182blond.github.io/kanafall/
 
-A cozy Japanese typing game: protect Nilo, a little forest spirit, by reading falling hiragana or katakana and casting spells with their romaji. Spanish interface, original SVG companion, synthesized audio, no accounts or external services.
+A cozy Japanese typing game: protect Nilo, a little forest companion, by reading falling hiragana or katakana and casting spells with their romaji. Spanish interface, illustrated companion, synthesized audio, no accounts or external services.
 
 ## Start
 

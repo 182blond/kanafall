@@ -21,7 +21,7 @@ Every entity has an ID, kana content, normalized position, fall speed, simulatio
 
 `XP required(level) = round(60 × level^1.4)`; this is per-level XP, with surplus carried over. Level 2 takes six accurate early answers. XP is credited and saved immediately, even if the session ends before the visual impact.
 
-Nilo starts as a leaf spirit. Level 5 adds an aura; level 10 changes the staff crystal; level 20 strengthens the aura. Level-up notices never disable input.
+Nilo starts as a young forest companion. Level 5 adds a green aura; level 10 enriches the leaf glow; level 20 adds a violet radiance. Level-up notices never disable input.
 
 ## Educational sequence
 
