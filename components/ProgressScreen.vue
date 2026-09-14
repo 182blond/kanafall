@@ -14,6 +14,13 @@ watch(
   () => (selected.value = kana.value[0]!),
 )
 const detail = computed(() => props.save.mastery[selected.value.id] ?? emptyMastery())
+const meaningDetail = computed(() => props.save.mastery[`${selected.value.id}:meaning`] ?? emptyMastery())
+const readingDetail = computed(() => props.save.mastery[`${selected.value.id}:reading`] ?? emptyMastery())
+const overallMastery = computed(() =>
+  props.script === 'kanji'
+    ? (meaningDetail.value.masteryScore + readingDetail.value.masteryScore) / 2
+    : detail.value.masteryScore,
+)
 const unlocked = (id: string) => props.save.unlocked.includes(id)
 </script>
 <template>
@@ -27,14 +34,14 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
     </div>
     <div class="progress-script-picker" role="group" aria-label="Colección">
       <button
-        v-for="item in ['hiragana', 'katakana'] as const"
+        v-for="item in ['hiragana', 'katakana', 'kanji'] as const"
         :key="item"
         :class="{ active: script === item }"
         :aria-pressed="script === item"
         @click="$emit('script', item)"
       >
-        <span lang="ja">{{ item === 'hiragana' ? 'あ' : 'ア' }}</span>
-        {{ item === 'hiragana' ? 'Hiragana' : 'Katakana' }}
+        <span lang="ja">{{ item === 'hiragana' ? 'あ' : item === 'katakana' ? 'ア' : '山' }}</span>
+        {{ item === 'hiragana' ? 'Hiragana' : item === 'katakana' ? 'Katakana' : 'Kanji' }}
       </button>
     </div>
     <div class="progress-stats">
@@ -62,8 +69,8 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
     <div class="collection-layout">
       <div>
         <div class="section-title">
-          <h2>Tu colección de {{ script }}</h2>
-          <span>{{ kana.filter((k) => unlocked(k.id)).length }} / 46 desbloqueados</span>
+          <h2>{{ script === 'kanji' ? 'Tu bosque de palabras' : `Tu colección de ${script}` }}</h2>
+          <span>{{ kana.filter((k) => unlocked(k.id)).length }} / {{ kana.length }} desbloqueados</span>
         </div>
         <div class="kana-rows">
           <div v-for="(group, index) in groups" :key="group[0]" class="kana-row">
@@ -71,7 +78,7 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
               {{ group[0] }}
               <small v-if="index * 2 + 1 > path.level">Nivel {{ index * 2 + 1 }}</small>
             </span>
-            <div class="kana-cells">
+            <div class="kana-cells" :class="{ 'word-cells': script === 'kanji' }">
               <button
                 v-for="k in kana.filter((k) => k.group === index)"
                 :key="k.id"
@@ -81,27 +88,42 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
                 @click="selected = k"
               >
                 <span lang="ja">{{ k.character }}</span>
-                <i :style="{ width: (save.mastery[k.id]?.masteryScore ?? 0) * 100 + '%' }"></i>
+                <small v-if="script === 'kanji'" lang="ja">{{ k.reading }}</small>
+                <i
+                  :style="{
+                    width:
+                      (script === 'kanji'
+                        ? ((save.mastery[`${k.id}:meaning`]?.masteryScore ?? 0) +
+                            (save.mastery[`${k.id}:reading`]?.masteryScore ?? 0)) /
+                          2
+                        : save.mastery[k.id]?.masteryScore ?? 0) *
+                        100 + '%',
+                  }"
+                ></i>
               </button>
             </div>
           </div>
         </div>
         <p class="collection-note">
-          La precisión cuenta respuestas y letras que se escaparon. El dominio crece con la práctica.
+          {{
+            script === 'kanji'
+              ? 'Primero reconocés el significado; después practicás la lectura con cada vez menos ayuda.'
+              : 'La precisión cuenta respuestas y letras que se escaparon. El dominio crece con la práctica.'
+          }}
         </p>
       </div>
       <aside class="kana-detail">
         <p class="eyebrow">{{ unlocked(selected.id) ? 'TU LETRA' : 'POR DESCUBRIR' }}</p>
-        <div class="detail-character" lang="ja">{{ selected.character }}</div>
-        <h2>{{ selected.romaji[0] }}</h2>
+        <div class="detail-character" :class="{ word: script === 'kanji' }" lang="ja">{{ selected.character }}</div>
+        <h2>{{ script === 'kanji' ? `${selected.reading} · ${selected.meaning}` : selected.romaji[0] }}</h2>
         <span class="mastery-badge">
           {{
             unlocked(selected.id)
-              ? masteryLabel(detail.masteryScore)
+              ? masteryLabel(overallMastery)
               : `Se abre en nivel ${selected.group * 2 + 1}`
           }}
         </span>
-        <dl>
+        <dl v-if="script !== 'kanji'">
           <div>
             <dt>Precisión</dt>
             <dd>{{ detail.attempts ? Math.round((detail.correct / detail.attempts) * 100) + '%' : '—' }}</dd>
@@ -119,7 +141,31 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
             <dd>{{ Math.round(detail.masteryScore * 100) }}%</dd>
           </div>
         </dl>
-        <p>Las letras que más cuestan vuelven un poco más seguido.</p>
+        <dl v-else>
+          <div>
+            <dt>Significado</dt>
+            <dd>{{ Math.round(meaningDetail.masteryScore * 100) }}%</dd>
+          </div>
+          <div>
+            <dt>Lectura</dt>
+            <dd>{{ Math.round(readingDetail.masteryScore * 100) }}%</dd>
+          </div>
+          <div>
+            <dt>Intentos</dt>
+            <dd>{{ meaningDetail.attempts + readingDetail.attempts }}</dd>
+          </div>
+          <div>
+            <dt>Kanji clave</dt>
+            <dd lang="ja">{{ selected.focusKanji }}</dd>
+          </div>
+        </dl>
+        <p>
+          {{
+            script === 'kanji'
+              ? 'Las palabras difíciles regresan más seguido y la ayuda desaparece gradualmente.'
+              : 'Las letras que más cuestan vuelven un poco más seguido.'
+          }}
+        </p>
       </aside>
     </div>
   </section>

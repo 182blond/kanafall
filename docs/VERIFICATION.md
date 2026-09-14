@@ -9,12 +9,24 @@
 - Progress browser check: the Katakana collection shows 5/46 unlocked at level 1, all ten rows, correct readings, and independent statistics.
 - Updated automated result: **16 tests passed**, including katakana dataset parity and v1 migration.
 
+## Kanji learning prototype
+
+- Added 10 introductory kanji through 25 vocabulary words in five progressive units.
+- Added independent meaning and reading mastery, staged hiragana/furigana removal, accent-insensitive Spanish matching and weak-item weighting.
+- Added a third independent XP path and safe migration from both version 1 and version 2 saves.
+- Browser check: selected Kanji, started at level 1, received `かざん`, answered `volcán`, gained 110 points and 10 XP, and confirmed the next meaning prompt.
+- Progress check: the new collection shows 5/25 unlocked, every word with its reading, unit unlock levels, kanji focus and separate meaning/reading progress.
+- Teaching-flow check: an unseen word opens a paused discovery card before its first exercise; the card exposes kanji, hiragana, romaji and Spanish meaning, then hands focus to an explicitly labeled Spanish-answer field.
+- Meaning feedback now states the Spanish relationship, reading feedback states the romaji relationship, and curated regional synonyms are accepted.
+- Session-flow check: the Kanji menu offers separate Significados/Español and Lecturas/Romaji runs. In a meaning run, the falling target showed `川` with “¿Qué significa esta palabra?” and the input remained labeled as a Spanish answer.
+- Updated automated result: **19 tests passed**, including the 10-kanji/25-word corpus, lesson-stage transitions and both save migrations.
+
 ## Automated checks
 
 - `npm run build`: **passed**, official Nuxt 3 production build (120 client modules).
 - `npm run typecheck`: **passed**, strict Nuxt/Vue TypeScript checking.
 - `npm run lint`: **passed**, no lint errors or warnings.
-- `npm test`: **14 passed**, zero failures. Covers canonical kana and readings, normalization, dangerous-target selection and duplicate exclusion, XP bonuses and level boundaries, mastery counters/clamps/immutability, difficulty and unlocks, weighted selection and non-repetition, save round-trip, inconsistent data, malformed JSON and unsupported versions.
+- `npm test`: **19 passed**, zero failures. Covers canonical kana, the 25-word kanji corpus, lesson-stage transitions, normalization, targeting, XP and level boundaries, mastery, unlocks, weighted selection, save round-trip, malformed data and version 1/2 migrations.
 
 ## Browser checks
 

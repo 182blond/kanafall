@@ -1,11 +1,12 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { hiragana, katakana } from '../data/kana.ts'
+import { hiragana, kanjiWords, katakana } from '../data/kana.ts'
 import {
   chooseKana,
   difficulty,
   emptyMastery,
   findTarget,
+  lessonFor,
   matches,
   progression,
   unlockedKana,
@@ -52,6 +53,10 @@ describe('Japanese content and matching', () => {
       spawnTimestamp: id,
       effectAge: 0,
       xp: 0,
+      display: 'あ',
+      answers: ['a'],
+      masteryId: 'hiragana-a',
+      prompt: 'reading',
     })
     const enemies = [make(1, 20), make(2, 40), make(3, 70, 'targeted')]
     const target = findTarget(enemies, 'a')!
@@ -60,6 +65,28 @@ describe('Japanese content and matching', () => {
     assert.equal(findTarget(enemies, 'a')?.id, 1)
     assert.equal(findTarget(enemies, 'shi'), undefined)
     assert.equal(findTarget([make(2, 20), make(1, 20)], 'a')?.id, 1)
+  })
+  it('contains a 10-kanji, 25-word learning path', () => {
+    assert.equal(kanjiWords.length, 25)
+    assert.deepEqual(new Set(kanjiWords.map((word) => word.focusKanji)), new Set('山川日月火水木人大小'))
+    assert.ok(kanjiWords.every((word) => word.reading && word.meaning && word.kanji))
+  })
+  it('keeps meaning and reading in separate kanji practice sessions', () => {
+    const word = kanjiWords[0]!
+    const meaning = lessonFor(word, {}, 'meaning')
+    assert.deepEqual(
+      { display: meaning.display, hint: meaning.hint, prompt: meaning.prompt, answers: meaning.answers },
+      { display: '山', hint: '¿Qué significa esta palabra?', prompt: 'meaning', answers: ['montaña'] },
+    )
+    const assisted = lessonFor(word, {}, 'reading')
+    assert.equal(assisted.display, '山')
+    assert.equal(assisted.hint, 'やま')
+    assert.equal(assisted.prompt, 'reading')
+    const independent = lessonFor(word, {
+      [`${word.id}:reading`]: { attempts: 2, correct: 2, incorrect: 0, currentStreak: 2, masteryScore: 0.24 },
+    }, 'reading')
+    assert.equal(independent.hint, undefined)
+    assert.ok(matches({ ...word, romaji: ['volcan'] }, ' volcán '))
   })
 })
 describe('progression and mastery', () => {
@@ -93,6 +120,8 @@ describe('progression and mastery', () => {
     assert.equal(unlockedKana(1, 'katakana').length, 5)
     assert.equal(unlockedKana(3).length, 10)
     assert.equal(unlockedKana(19).length, 46)
+    assert.equal(unlockedKana(1, 'kanji').length, 5)
+    assert.equal(unlockedKana(9, 'kanji').length, 25)
     assert.equal(difficulty(1).maxEnemies, 1)
     assert.equal(difficulty(6).maxEnemies, 2)
     assert.equal(difficulty(11).maxEnemies, 3)

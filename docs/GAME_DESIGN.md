@@ -2,7 +2,7 @@
 
 ## Core loop
 
-Read a falling kana → type its Hepburn romaji → press Enter → Nilo casts a spell → gain XP and build a streak. The selected enemy is locked, input cleared and rewards credited in the same event handler. Its spell flies for 180 ms, then the hit disperses within 800 ms. Input never waits for this animation. Next spawn can begin after 450 ms; at low levels only one **answerable** letter is present, although a defeated letter may still animate.
+Read a falling learning item → type the requested meaning or Hepburn reading → press Enter → Nilo casts a spell → gain XP and build a streak. The selected enemy is locked, input cleared and rewards credited in the same event handler. Its spell flies for 180 ms, then the hit disperses within 800 ms. Input never waits for this animation. Next spawn can begin after 450 ms; kanji mode always keeps one answerable word on screen so meaning and reading prompts cannot conflict.
 
 Every entity has an ID, kana content, normalized position, fall speed, simulation spawn time, state and effect age. States: falling → targeted → hit → destroyed, or falling → missed → destroyed. When readings match several letters, the lowest wins; ties use spawn time then ID. A targeted enemy cannot be scored twice or cost a life. Animation timing freezes with gameplay on pause.
 
@@ -25,7 +25,7 @@ Nilo starts as a young forest companion. Level 5 adds a green aura; level 10 enr
 
 ## Educational sequence
 
-Hiragana and katakana are two selectable paths. They share the same learning order and companion, while keeping XP, levels and character mastery separate. A migrated pre-katakana save retains all progress in hiragana and begins katakana at level 1.
+Hiragana, katakana and kanji are selectable paths. They share the companion while keeping XP and levels separate. Old saves retain all kana progress and begin kanji at level 1.
 
 The pool expands on levels 1, 3, 5, …, 19:
 
@@ -42,9 +42,17 @@ The pool expands on levels 1, 3, 5, …, 19:
 
 Readings are deterministic, standard Hepburn: shi, chi, tsu, fu. The character を is tested as `wo`; contextual particle pronunciations (`o`, `wa`, `e`) are not alternate answers in this isolated-character mode. No runtime language-model calls.
 
+### Kanji teaching slice
+
+The initial route contains 25 words organized around `山 川 日 月 火 水 木 人 大 小`. Five-word units open at levels 1, 3, 5, 7 and 9: mountains/rivers, sun/moon, fire/water, trees/people, and big/small.
+
+Each word has two independent mastery records and the learner chooses one skill for the entire run: **Significados** in Spanish or **Lecturas** in romaji. Before its first exercise in that skill, an unseen word opens a discovery card with kanji, hiragana, romaji and Spanish meaning; the simulation pauses until the learner chooses to practice. Meaning exercises show the kanji with the question “¿Qué significa esta palabra?” and never place its pronunciation beneath the target. Reading exercises show hiragana for the first two attempts and then remove it.
+
+The menu, start button and input dock name the selected skill and answer language: Spanish for meaning, Latin letters/romaji for reading. Neutral examples demonstrate the format without revealing the active answer. Correct and corrective feedback repeat the relationship explicitly. Spanish matching ignores capitalization, surrounding spaces and accents, and accepts curated regional synonyms. Kanji mode uses vocabulary readings instead of asking learners to memorize isolated on/kun reading lists.
+
 ## Mastery and spawning
 
-Track attempts, correct, incorrect, current streak and confidence separately per kana. Correct: +0.12 confidence; wrong/missed: −0.08, clamped to [0,1]. Confidence describes practice progress, not an estimate of linguistic proficiency. Display accuracy separately.
+Track attempts, correct, incorrect, current streak and confidence separately per kana. Kanji words track meaning and reading independently. Correct: +0.12 confidence; wrong/missed: −0.08, clamped to [0,1]. Confidence describes practice progress, not an estimate of linguistic proficiency. Display accuracy separately.
 
 - Below 25%: New
 - 25–59%: Learning
@@ -61,4 +69,4 @@ Spawn interval starts near 3.5 seconds and decreases with level/time to a minimu
 
 ## Future scope
 
-Possible later additions: voiced kana and contracted sounds, vocabulary, richer companion evolution, review or daily challenge modes, cloud saves. These are not implemented. Keep new content deterministic and keep persistence behind the existing boundary.
+Possible later additions: voiced kana and contracted sounds, sentence context, scheduled review dates, richer companion evolution, daily challenges and cloud saves. Keep new content deterministic and keep persistence behind the existing boundary.

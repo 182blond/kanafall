@@ -17,11 +17,11 @@ describe('versioned save boundary', () => {
     save.unlocked = []
     const parsed = parseSave(JSON.stringify(save))
     assert.equal(parsed.player.level, 3)
-    assert.equal(parsed.unlocked.length, 15)
+    assert.equal(parsed.unlocked.length, 20)
   })
   it('rejects malformed JSON and unknown versions so their contents can be protected', () => {
     assert.throws(() => parseSave('{'))
-    assert.throws(() => parseSave('{"version":3}'))
+    assert.throws(() => parseSave('{"version":4}'))
   })
   it('sanitizes invalid counters, settings, and mastery', () => {
     const parsed = parseSave(
@@ -54,6 +54,20 @@ describe('versioned save boundary', () => {
     )
     assert.deepEqual(parsed.player.paths.hiragana, { totalXp: 220, level: 3 })
     assert.deepEqual(parsed.player.paths.katakana, { totalXp: 0, level: 1 })
-    assert.equal(parsed.version, 2)
+    assert.deepEqual(parsed.player.paths.kanji, { totalXp: 0, level: 1 })
+    assert.equal(parsed.version, 3)
+  })
+  it('migrates a v2 kana save and keeps the new kanji path separate', () => {
+    const parsed = parseSave(
+      JSON.stringify({
+        version: 2,
+        player: { paths: { hiragana: { totalXp: 60 }, katakana: { totalXp: 120 } } },
+        settings: { script: 'katakana' },
+      }),
+    )
+    assert.equal(parsed.player.paths.hiragana.totalXp, 60)
+    assert.equal(parsed.player.paths.katakana.totalXp, 120)
+    assert.deepEqual(parsed.player.paths.kanji, { totalXp: 0, level: 1 })
+    assert.equal(parsed.settings.script, 'katakana')
   })
 })

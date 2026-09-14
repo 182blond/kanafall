@@ -28,15 +28,15 @@ export function useProgress() {
     const path = save.value.player.paths[save.value.settings.script]
     path.totalXp += amount
     path.level = player.value.level
-    save.value.player.totalXp =
-      save.value.player.paths.hiragana.totalXp + save.value.player.paths.katakana.totalXp
-    save.value.player.level = Math.max(
-      save.value.player.paths.hiragana.level,
-      save.value.player.paths.katakana.level,
+    save.value.player.totalXp = Object.values(save.value.player.paths).reduce(
+      (sum, current) => sum + current.totalXp,
+      0,
     )
+    save.value.player.level = Math.max(...Object.values(save.value.player.paths).map((current) => current.level))
     save.value.unlocked = [
       ...unlockedKana(save.value.player.paths.hiragana.level, 'hiragana'),
       ...unlockedKana(save.value.player.paths.katakana.level, 'katakana'),
+      ...unlockedKana(save.value.player.paths.kanji.level, 'kanji'),
     ].map((k) => k.id)
     if (player.value.level > previous) trackGameEvent('level_up', { level: player.value.level })
     persist()
@@ -51,7 +51,7 @@ export function useProgress() {
       save.value.statistics.incorrect++
       persist()
     }
-    trackGameEvent(correct ? 'answer_correct' : 'answer_wrong', { kana: id, combo })
+    trackGameEvent(correct ? 'answer_correct' : 'answer_wrong', { item: id, combo })
   }
   function reset() {
     protectedSave = false

@@ -27,6 +27,7 @@ const game = useGame(
   () => player.value.level,
   () => pool.value,
   () => audio.play('impact'),
+  () => save.value.settings.kanjiPractice,
 )
 const { status, score, runBest, runXp, runCorrect, runIncorrect } = game
 const page = ref<'game' | 'progress' | 'settings'>('game'),
@@ -38,7 +39,9 @@ const arena = ref<InstanceType<typeof GameArena>>()
 const isDev = import.meta.dev
 let noticeTimer: ReturnType<typeof setTimeout> | undefined
 const groups = computed(() => groupsFor(save.value.settings.script))
-const currentGroup = computed(() => groups.value[Math.min(9, Math.ceil(player.value.level / 2) - 1)]!)
+const currentGroup = computed(() =>
+  groups.value[Math.min(groups.value.length - 1, Math.ceil(player.value.level / 2) - 1)]!,
+)
 const nextGroup = computed(() => groups.value[Math.ceil(player.value.level / 2)])
 const runAccuracy = computed(() =>
   runCorrect.value + runIncorrect.value
@@ -145,6 +148,9 @@ function selectScript(script: KanaScript) {
   save.value.settings.script = script
   debugKana.value = allKana.find((kana) => kana.type === script)!.id
 }
+function selectKanjiPractice(practice: 'meaning' | 'reading') {
+  save.value.settings.kanjiPractice = practice
+}
 function requestDebugReset() {
   debugOpen.value = false
   openPage('settings', true)
@@ -170,6 +176,7 @@ function keyboard(event: KeyboardEvent) {
   }
   if (
     status.value === 'playing' &&
+    !game.lessonIntro.value &&
     page.value === 'game' &&
     event.target === document.body &&
     /^[a-zA-Z]$/.test(event.key) &&
@@ -223,8 +230,9 @@ onUnmounted(() => {
           :required="player.required"
           :level-notice="levelNotice"
           :reduced-motion="save.settings.reducedMotion"
-          :hints="pool.reduce((total, kana) => total + (save.mastery[kana.id]?.correct ?? 0), 0) < 6"
+          :hints="save.settings.script !== 'kanji' && pool.reduce((total, kana) => total + (save.mastery[kana.id]?.correct ?? 0), 0) < 6"
           :script="save.settings.script"
+          :kanji-practice="save.settings.kanjiPractice"
         />
         <div v-if="status === 'menu'" class="overlay menu-overlay">
           <div class="menu-decoration" aria-hidden="true">
@@ -232,27 +240,46 @@ onUnmounted(() => {
           </div>
           <div class="menu-card">
             <div class="chapter-pill">
-              CAPÍTULO {{ Math.min(10, Math.ceil(player.level / 2)) }}
+              CAPÍTULO {{ Math.min(groups.length, Math.ceil(player.level / 2)) }}
               <span>·</span>
               {{ currentGroup[0] }}
             </div>
             <div class="script-picker" role="group" aria-label="Sistema de escritura">
               <button
-                v-for="script in ['hiragana', 'katakana'] as const"
+                v-for="script in ['hiragana', 'katakana', 'kanji'] as const"
                 :key="script"
                 :class="{ active: save.settings.script === script }"
                 :aria-pressed="save.settings.script === script"
                 @click="selectScript(script)"
               >
-                <span lang="ja">{{ script === 'hiragana' ? 'あ' : 'ア' }}</span>
-                {{ script === 'hiragana' ? 'Hiragana' : 'Katakana' }}
+                <span lang="ja">{{ script === 'hiragana' ? 'あ' : script === 'katakana' ? 'ア' : '山' }}</span>
+                {{ script === 'hiragana' ? 'Hiragana' : script === 'katakana' ? 'Katakana' : 'Kanji' }}
               </button>
             </div>
             <h1>
               Kanafall
               <span>かなの森</span>
             </h1>
-            <p class="menu-subtitle">
+            <div v-if="save.settings.script === 'kanji'" class="kanji-practice-picker">
+              <span>¿QUÉ QUERÉS PRACTICAR?</span>
+              <div role="group" aria-label="Tipo de práctica de kanji">
+                <button
+                  :class="{ active: save.settings.kanjiPractice === 'meaning' }"
+                  :aria-pressed="save.settings.kanjiPractice === 'meaning'"
+                  @click="selectKanjiPractice('meaning')"
+                >
+                  Significados <small>Español</small>
+                </button>
+                <button
+                  :class="{ active: save.settings.kanjiPractice === 'reading' }"
+                  :aria-pressed="save.settings.kanjiPractice === 'reading'"
+                  @click="selectKanjiPractice('reading')"
+                >
+                  Lecturas <small>Romaji</small>
+                </button>
+              </div>
+            </div>
+            <p v-else class="menu-subtitle">
               Un pequeño espíritu.
               <br />
               Un mundo por aprender.
@@ -267,7 +294,15 @@ onUnmounted(() => {
               </span>
             </div>
             <button class="primary" :disabled="!ready" @click="start">
-              {{ save.statistics.runs ? 'Volver al bosque' : 'Jugar' }}
+              {{
+                save.settings.script === 'kanji'
+                  ? save.settings.kanjiPractice === 'meaning'
+                    ? 'Practicar significados'
+                    : 'Practicar lecturas'
+                  : save.statistics.runs
+                    ? 'Volver al bosque'
+                    : 'Jugar'
+              }}
               <span>↗</span>
             </button>
             <nav class="menu-links" aria-label="Menú principal">
@@ -276,7 +311,13 @@ onUnmounted(() => {
               <button @click="openPage('settings')">Ajustes</button>
             </nav>
             <p class="how-to">
-              Leé el {{ save.settings.script }}. Escribí su romaji.
+              {{
+                save.settings.script === 'kanji'
+                  ? save.settings.kanjiPractice === 'meaning'
+                    ? 'Mirá el kanji y respondé qué significa en español.'
+                    : 'Mirá el kanji y escribí su lectura en romaji.'
+                  : `Leé el ${save.settings.script}. Escribí su romaji.`
+              }}
               <kbd>Enter ↵</kbd>
             </p>
             <button class="reset-link" @click="openPage('settings', true)">Restablecer guardado</button>
@@ -368,7 +409,7 @@ onUnmounted(() => {
       </label>
       <select v-model="debugKana" aria-label="Kana de prueba">
         <option v-for="k in allKana" :key="k.id" :value="k.id">
-          {{ k.character }} · {{ k.romaji[0] }} · {{ scriptJapanese(k.type) }}
+          {{ k.character }} · {{ k.romaji[0] }}{{ k.meaning ? ` · ${k.meaning}` : '' }} · {{ scriptJapanese(k.type) }}
         </option>
       </select>
       <button @click="game.spawn(debugKana)">Crear letra</button>

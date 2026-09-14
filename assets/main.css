@@ -509,6 +509,63 @@ button:active {
     sans-serif;
   color: #c3d89d;
 }
+.lesson-intro {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100% - 36px));
+  padding: 24px 28px;
+  text-align: center;
+  border: 1px solid #bddc9270;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #183638f5, #0d2225fa);
+  box-shadow: 0 20px 70px #020b0dcc, 0 0 45px #b8dc7f16;
+}
+.lesson-intro .eyebrow {
+  margin: 0 0 8px;
+  font-size: 9px;
+}
+.lesson-glyph {
+  color: #eff6d7;
+  font: 64px/1.15 'Yu Gothic', 'Meiryo', sans-serif;
+}
+.lesson-reading {
+  color: #d1e3bd;
+  font-size: 19px;
+}
+.lesson-reading span {
+  margin-left: 8px;
+  color: #91aa9b;
+  font: 12px 'Segoe UI', sans-serif;
+}
+.lesson-intro h2 {
+  margin: 10px 0 8px;
+  color: #cceb98;
+  font: 28px Georgia, serif;
+}
+.lesson-intro > p:not(.eyebrow) {
+  margin: 0 auto 17px;
+  max-width: 350px;
+  color: #a9beb1;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.lesson-intro b {
+  color: #e3efc9;
+}
+.lesson-intro .primary {
+  min-width: 230px;
+  padding: 11px 20px;
+}
+.enemy.kanji-word {
+  width: auto;
+  min-width: 108px;
+  padding-inline: 14px;
+  font-size: 36px;
+  white-space: nowrap;
+}
 .projectiles {
   position: absolute;
   width: 100%;
@@ -534,6 +591,10 @@ button:active {
 .input-dock p {
   font-size: 12px;
   margin-bottom: 11px;
+}
+.input-dock p.task-prompt {
+  color: #c7dcad;
+  font-weight: 600;
 }
 .typing-row {
   display: flex;
@@ -694,6 +755,43 @@ button:active {
   color: #e8f3cd;
   background: #badb8e18;
   box-shadow: inset 0 0 0 1px #c7df9b26;
+}
+.kanji-practice-picker {
+  margin: 13px auto 3px;
+}
+.kanji-practice-picker > span {
+  display: block;
+  margin-bottom: 6px;
+  color: #91aa9b;
+  font-size: 9px;
+  letter-spacing: 1.6px;
+}
+.kanji-practice-picker > div {
+  display: inline-flex;
+  gap: 5px;
+}
+.kanji-practice-picker button {
+  min-width: 130px;
+  padding: 7px 12px;
+  border: 1px solid #bfd99b22;
+  border-radius: 10px;
+  color: #8da397;
+  background: #071a1c66;
+  font-size: 11px;
+}
+.kanji-practice-picker button small {
+  display: block;
+  margin-top: 2px;
+  color: #738b80;
+  font-size: 9px;
+}
+.kanji-practice-picker button.active {
+  border-color: #c7df9b3b;
+  color: #edf6d9;
+  background: #badb8e18;
+}
+.kanji-practice-picker button.active small {
+  color: #b8ccac;
 }
 .progress-script-picker {
   margin: -12px 0 25px;
@@ -1025,6 +1123,17 @@ button:active {
   height: 3px;
   background: #c1e493;
 }
+.word-cells button {
+  height: 66px;
+  font-size: 21px;
+  line-height: 1.1;
+}
+.word-cells button small {
+  display: block;
+  margin-top: 5px;
+  color: #91a997;
+  font-size: 9px;
+}
 .kana-detail {
   border: 1px solid #c8dea61b;
   border-radius: 18px;
@@ -1045,6 +1154,9 @@ button:active {
   line-height: 1.4;
   color: #e6f2ce;
   margin-top: 7px;
+}
+.detail-character.word {
+  font-size: 52px;
 }
 .kana-detail h2 {
   font-size: 22px;
@@ -1366,6 +1478,18 @@ select {
     height: calc(100dvh - 135px);
     border-radius: 17px;
   }
+  .playfield {
+    bottom: 126px;
+  }
+  .input-dock {
+    height: 122px;
+  }
+  .lesson-intro {
+    padding: 19px 18px;
+  }
+  .lesson-glyph {
+    font-size: 51px;
+  }
   .hud {
     gap: 14px;
     padding: 15px;
@@ -1398,6 +1522,23 @@ select {
   }
   .menu-card {
     padding: 20px;
+  }
+  .script-picker button,
+  .progress-script-picker button {
+    padding-inline: 8px;
+  }
+  .script-picker button span,
+  .progress-script-picker button span {
+    margin-right: 3px;
+  }
+  .companion-stage > .spirit {
+    width: 128px;
+  }
+  .player {
+    width: 118px !important;
+  }
+  .pause-card > .spirit {
+    width: 108px;
   }
   .menu-card h1 {
     font-size: 67px;
@@ -1460,6 +1601,12 @@ select {
   .kana-cells button {
     height: 52px;
   }
+  .word-cells {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .word-cells button {
+    height: 62px;
+  }
   .kana-row {
     gap: 10px;
   }
@@ -1500,5 +1647,38 @@ select {
   }
   .pause-card h1 {
     font-size: 48px;
+  }
+}
+@media (max-width: 700px) and (max-height: 650px) {
+  .menu-card {
+    padding: 10px 18px;
+  }
+  .menu-card h1 {
+    font-size: 54px;
+    margin: 5px 0;
+  }
+  .menu-card h1 > span {
+    margin: 6px 0 9px 8px;
+  }
+  .menu-card .menu-subtitle {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .companion-stage {
+    margin-top: 0;
+    padding-bottom: 6px;
+  }
+  .companion-stage > .spirit {
+    width: 100px;
+  }
+  .menu-card > .primary {
+    margin-top: 3px;
+    padding-block: 11px;
+  }
+  .menu-links {
+    margin-top: 5px;
+  }
+  .menu-card .how-to {
+    margin-top: 6px;
   }
 }
