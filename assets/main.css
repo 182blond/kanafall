@@ -2572,3 +2572,57 @@ select {
     font-size: 10px;
   }
 }
+
+.random-mode-toggle,
+.random-collection-toggle {
+  border: 1px solid #c9a7ff35;
+  color: #b9accb;
+  background: #b88bf012;
+}
+
+.progress-script-picker {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.random-mode-toggle {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 7px;
+  row-gap: 2px;
+  width: min(100%, 330px);
+  margin: 13px auto 3px;
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 11px;
+}
+
+.random-mode-toggle span {
+  grid-row: span 2;
+  color: var(--violet-accent);
+  font-size: 17px;
+}
+
+.random-mode-toggle small {
+  color: var(--violet-subtle);
+  font-size: 9px;
+}
+
+.random-mode-toggle.active,
+.random-collection-toggle.active {
+  border-color: #c9a7ff66;
+  color: #f4ebff;
+  background: #b88bf02b;
+  box-shadow: inset 0 0 0 1px #d8b6ff26;
+}
+
+.random-collection-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.random-collection-toggle span {
+  color: var(--violet-accent);
+}

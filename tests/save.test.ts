@@ -12,10 +12,16 @@ describe('versioned save boundary', () => {
   })
   it('persists random practice mode without creating a separate progression path', () => {
     const save = freshSave()
-    save.settings.script = 'random'
+    save.settings.randomMode = true
     const parsed = parseSave(JSON.stringify(save))
-    assert.equal(parsed.settings.script, 'random')
+    assert.equal(parsed.settings.script, 'hiragana')
+    assert.equal(parsed.settings.randomMode, true)
     assert.deepEqual(Object.keys(parsed.player.paths), ['hiragana', 'katakana', 'kanji'])
+  })
+  it('migrates the previous global random setting to the selected default section', () => {
+    const parsed = parseSave(JSON.stringify({ version: 3, settings: { script: 'random' } }))
+    assert.equal(parsed.settings.script, 'hiragana')
+    assert.equal(parsed.settings.randomMode, true)
   })
   it('reconstructs level and unlocks instead of trusting inconsistent stored fields', () => {
     const save = freshSave()

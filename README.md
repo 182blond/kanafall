@@ -2,7 +2,7 @@
 
 **Web:** https://182blond.github.io/kanafall/
 
-A cozy Japanese typing game: protect Nilo, a little forest companion, while learning hiragana, katakana and an introductory path of 20 kanji through 35 words. A Random mode mixes the complete collection for open practice. Spanish interface, illustrated companion, synthesized audio, no accounts or external services.
+A cozy Japanese typing game: protect Nilo, a little forest companion, while learning hiragana, katakana and an introductory path of 20 kanji through 35 words. Each section has a Random mode for open practice. Spanish interface, illustrated companion, synthesized audio, no accounts or external services.
 
 ## Start
 
@@ -32,7 +32,7 @@ Tests use Node's built-in test runner with TypeScript stripping and no subproces
 ## Play
 
 - Choose **Hiragana** or **Katakana**, click **Jugar**, type the Hepburn reading, then press **Enter**. Case and surrounding spaces are ignored.
-- Choose **Random** to mix every hiragana, katakana and kanji word, including locked and fully mastered items. Random selection ignores mastery weighting; it is an open practice mode rather than a progression path.
+- Activate **Random** inside Hiragana, Katakana or Kanji to practice any item from that section, including locked and fully mastered items. Random selection ignores mastery weighting; it is an open practice mode rather than a progression path.
 - Choose **Kanji** to enter **Bosque de palabras**, then choose a complete **Significados** session in Spanish or a **Lecturas** session in romaji. Before a new word can fall, a paused discovery card teaches its kanji, hiragana, romaji and Spanish meaning.
 - Meaning sessions show the kanji with a small hiragana reading and ask “¿Qué significa esta palabra?”. Reading sessions hide that aid so they do not reveal the answer. Every exercise keeps the same answer language for the whole run. Meaning and reading have independent mastery; accents are optional, common regional synonyms are accepted, and difficult words return more often.
 - The first six successful answers show a reading hint. Later, a wrong answer reveals the most dangerous letter's reading and selects the text for an easy retry.
@@ -66,6 +66,8 @@ An answer earns `10 + min(10, floor(combo / 5))` XP, plus 2 XP for each consecut
 `kanafall.save.v1` stores a version 3 schema with separate path XP/levels, shared statistics, skill mastery, unlocked IDs and settings. Version 1 and 2 saves migrate automatically: existing kana progress stays intact and kanji begins at level 1. Level/unlocks are reconstructed from XP when loaded. Saves are written after every answer and settings change to localStorage and a second IndexedDB copy; the previous valid local save is also rotated as a recovery snapshot. Startup selects the newest valid copy and restores it automatically. Invalid or newer-version saves are preserved rather than overwritten, and storage failures display a notice. Settings can export a portable JSON backup and import it with an explicit replacement confirmation. Current run position is intentionally not restored. Future cloud persistence can replace `useProgress` without changing the game rules.
 
 Random mode bypasses unlocks and mastery weighting; its XP is credited to the content path of the item answered rather than to a separate Random path.
+
+When every item currently unlocked in a learning section reaches 100% mastery, that section advances automatically to the next level and opens new content.
 
 ## Development controls
 

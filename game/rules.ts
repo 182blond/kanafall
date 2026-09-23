@@ -1,4 +1,4 @@
-import { kanaFor, type Kana, type KanjiPractice, type PracticeScript } from '../data/kana.ts'
+import { kanaFor, type Kana, type KanjiPractice, type KanaScript, type PracticeScript } from '../data/kana.ts'
 export interface Mastery {
   attempts: number
   correct: number
@@ -69,6 +69,33 @@ export function difficulty(level: number, seconds = 0) {
 }
 export const unlockedKana = (level: number, script: PracticeScript = 'hiragana') =>
   script === 'random' ? kanaFor(script) : kanaFor(script).filter((k) => k.group < difficulty(level).groups)
+export function autoAdvanceProgress(
+  level: number,
+  totalXp: number,
+  script: KanaScript,
+  mastery: Record<string, Mastery>,
+  kanjiPractice: KanjiPractice = 'meaning',
+) {
+  let nextLevel = level,
+    nextTotalXp = totalXp,
+    advanced = false
+  while (unlockedKana(nextLevel, script).length < kanaFor(script).length) {
+    const pending = unlockedKana(nextLevel, script)
+    if (
+      !pending.length ||
+      !pending.every((item) => {
+        const key = item.type === 'kanji' ? `${item.id}:${kanjiPractice}` : item.id
+        return (mastery[key]?.masteryScore ?? 0) >= 1
+      })
+    )
+      break
+    const current = progression(nextTotalXp)
+    nextTotalXp += Math.max(0, current.required - current.xp)
+    nextLevel = progression(nextTotalXp).level
+    advanced = true
+  }
+  return { level: nextLevel, totalXp: nextTotalXp, advanced }
+}
 export function lessonFor(
   kana: Kana,
   mastery: Record<string, Mastery>,

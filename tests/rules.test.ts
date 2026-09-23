@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { allKana, hiragana, kanjiBreakdownFor, kanjiPartsFor, kanjiWords, katakana, kanaFor, scriptLabel } from '../data/kana.ts'
 import {
   chooseKana,
+  autoAdvanceProgress,
   difficulty,
   emptyMastery,
   findTarget,
@@ -170,6 +171,13 @@ describe('progression and mastery', () => {
     assert.equal(unlockedKana(1, 'random').length, allKana.length)
     assert.equal(kanaFor('random').length, allKana.length)
     assert.equal(scriptLabel('random'), 'Random')
+  })
+  it('opens the next section when every currently unlocked item is mastered', () => {
+    const mastery = Object.fromEntries(hiragana.slice(0, 5).map((item) => [item.id, { ...emptyMastery(), masteryScore: 1 }]))
+    const advanced = autoAdvanceProgress(1, 0, 'hiragana', mastery)
+    assert.equal(advanced.advanced, true)
+    assert.equal(advanced.level, 3)
+    assert.equal(unlockedKana(advanced.level, 'hiragana').length, 10)
   })
 })
 describe('weighted spawning', () => {

@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useGame } from './composables/useGame'
 import { useProgress } from './composables/useProgress'
 import { useAudio } from './composables/useAudio'
-import { allKana, groupsFor, scriptJapanese, type PracticeScript } from './data/kana'
+import { allKana, groupsFor, scriptJapanese, type KanaScript } from './data/kana'
 import { xpToNextLevel } from './game/rules'
 import { trackGameEvent } from './game/events'
 import type { Settings } from './game/save'
@@ -28,7 +28,7 @@ const game = useGame(
   () => pool.value,
   () => audio.play('impact'),
   () => save.value.settings.kanjiPractice,
-  () => save.value.settings.script === 'random',
+  () => save.value.settings.randomMode,
 )
 const { status, score, runBest, runXp, runCorrect, runIncorrect } = game
 const page = ref<'game' | 'progress' | 'settings'>('game'),
@@ -149,9 +149,12 @@ function changeSettings(settings: Settings) {
   audio.unlock()
   save.value.settings = settings
 }
-function selectScript(script: PracticeScript) {
+function selectScript(script: KanaScript) {
   save.value.settings.script = script
-  debugKana.value = (script === 'random' ? allKana[0] : allKana.find((kana) => kana.type === script))!.id
+  debugKana.value = allKana.find((kana) => kana.type === script)!.id
+}
+function toggleRandomMode() {
+  save.value.settings.randomMode = !save.value.settings.randomMode
 }
 function selectKanjiPractice(practice: 'meaning' | 'reading') {
   save.value.settings.kanjiPractice = practice
@@ -250,7 +253,7 @@ onUnmounted(() => {
           :required="player.required"
           :level-notice="levelNotice"
           :reduced-motion="save.settings.reducedMotion"
-          :hints="save.settings.script !== 'kanji' && save.settings.script !== 'random' && pool.reduce((total, kana) => total + (save.mastery[kana.id]?.correct ?? 0), 0) < 6"
+          :hints="save.settings.script !== 'kanji' && !save.settings.randomMode && pool.reduce((total, kana) => total + (save.mastery[kana.id]?.correct ?? 0), 0) < 6"
           :script="save.settings.script"
           :kanji-practice="save.settings.kanjiPractice"
         />
@@ -266,16 +269,21 @@ onUnmounted(() => {
             </div>
             <div class="script-picker" role="group" aria-label="Sistema de escritura">
               <button
-                v-for="script in ['hiragana', 'katakana', 'kanji', 'random'] as const"
+                v-for="script in ['hiragana', 'katakana', 'kanji'] as const"
                 :key="script"
                 :class="{ active: save.settings.script === script }"
                 :aria-pressed="save.settings.script === script"
                 @click="selectScript(script)"
               >
-                <span lang="ja">{{ script === 'hiragana' ? 'あ' : script === 'katakana' ? 'ア' : script === 'kanji' ? '山' : '✦' }}</span>
-                {{ script === 'hiragana' ? 'Hiragana' : script === 'katakana' ? 'Katakana' : script === 'kanji' ? 'Kanji' : 'Random' }}
+                <span lang="ja">{{ script === 'hiragana' ? 'あ' : script === 'katakana' ? 'ア' : '山' }}</span>
+                {{ script === 'hiragana' ? 'Hiragana' : script === 'katakana' ? 'Katakana' : 'Kanji' }}
               </button>
             </div>
+            <button class="random-mode-toggle" :class="{ active: save.settings.randomMode }" :aria-pressed="save.settings.randomMode" @click="toggleRandomMode">
+              <span aria-hidden="true">✦</span>
+              {{ save.settings.randomMode ? 'Random activo' : 'Activar Random' }}
+              <small>{{ save.settings.randomMode ? 'Puede salir cualquier contenido de esta sección' : 'Repaso libre de esta sección' }}</small>
+            </button>
             <h1>
               Kanafall
               <span>かなの森</span>
@@ -299,15 +307,15 @@ onUnmounted(() => {
                 </button>
               </div>
             </div>
-            <p v-else-if="save.settings.script !== 'random'" class="menu-subtitle">
+            <p v-if="save.settings.randomMode" class="menu-subtitle random-subtitle">
+              {{ save.settings.script === 'kanji' ? 'Todas las palabras de kanji.' : `Todo ${save.settings.script} mezclado.` }}
+              <br />
+              Puede aparecer cualquier contenido.
+            </p>
+            <p v-else-if="save.settings.script !== 'kanji'" class="menu-subtitle">
               Un pequeño espíritu.
               <br />
               Un mundo por aprender.
-            </p>
-            <p v-else class="menu-subtitle random-subtitle">
-              Todo el bosque mezclado.
-              <br />
-              Cualquier letra puede aparecer.
             </p>
             <div class="companion-stage">
               <div class="orbit"></div>
@@ -320,12 +328,16 @@ onUnmounted(() => {
             </div>
             <button class="primary" :disabled="!ready" @click="start">
               {{
-                save.settings.script === 'kanji'
+                save.settings.randomMode
+                  ? save.settings.script === 'kanji'
+                    ? save.settings.kanjiPractice === 'meaning'
+                      ? 'Significados al azar'
+                      : 'Lecturas al azar'
+                    : 'Practicar al azar'
+                  : save.settings.script === 'kanji'
                   ? save.settings.kanjiPractice === 'meaning'
                     ? 'Practicar significados'
                     : 'Practicar lecturas'
-                  : save.settings.script === 'random'
-                    ? 'Practicar al azar'
                   : save.statistics.runs
                     ? 'Volver al bosque'
                     : 'Jugar'
@@ -339,12 +351,16 @@ onUnmounted(() => {
             </nav>
             <p class="how-to">
               {{
-                save.settings.script === 'kanji'
+                save.settings.randomMode
+                  ? save.settings.script === 'kanji'
+                    ? save.settings.kanjiPractice === 'meaning'
+                      ? 'Puede aparecer cualquier palabra; respondé el significado en español.'
+                      : 'Puede aparecer cualquier palabra; escribí su lectura en romaji.'
+                    : `Puede aparecer cualquier contenido de ${save.settings.script}.`
+                  : save.settings.script === 'kanji'
                   ? save.settings.kanjiPractice === 'meaning'
                     ? 'Mirá el kanji y respondé qué significa en español.'
                     : 'Mirá el kanji y escribí su lectura en romaji.'
-                  : save.settings.script === 'random'
-                    ? 'Puede aparecer cualquier hiragana, katakana o kanji.'
                   : `Leé el ${save.settings.script}. Escribí su romaji.`
               }}
               <kbd>Enter ↵</kbd>
@@ -419,6 +435,7 @@ onUnmounted(() => {
       :script="save.settings.script"
       @back="back"
       @script="selectScript"
+      @random-mode="toggleRandomMode"
     />
     <SettingsScreen
       v-else

@@ -5,19 +5,15 @@ import {
   kanaFor,
   kanjiBreakdownFor,
   kanjiPartsFor,
-  type PracticeScript,
+  type KanaScript,
 } from '../data/kana'
 import { emptyMastery, masteryLabel } from '../game/rules'
 import type { Save } from '../game/save'
-const props = defineProps<{ save: Save; accuracy: number; script: PracticeScript }>()
-defineEmits<{ back: []; script: [script: PracticeScript] }>()
+const props = defineProps<{ save: Save; accuracy: number; script: KanaScript }>()
+defineEmits<{ back: []; script: [script: KanaScript]; randomMode: [] }>()
 const kana = computed(() => kanaFor(props.script))
 const groups = computed(() => groupsFor(props.script))
-const path = computed(() => {
-  if (props.script !== 'random') return props.save.player.paths[props.script]
-  const totalXp = Object.values(props.save.player.paths).reduce((sum, current) => sum + current.totalXp, 0)
-  return { level: Math.max(...Object.values(props.save.player.paths).map((current) => current.level)), totalXp }
-})
+const path = computed(() => props.save.player.paths[props.script])
 const selected = ref(kana.value[0]!)
 watch(
   () => props.script,
@@ -42,11 +38,8 @@ const overallMastery = computed(() =>
     ? (meaningDetail.value.masteryScore + readingDetail.value.masteryScore) / 2
     : detail.value.masteryScore,
 )
-const unlocked = (id: string) => props.script === 'random' || props.save.unlocked.includes(id)
-const itemsForGroup = (index: number) =>
-  props.script === 'random'
-    ? kana.value.filter((item) => item.type === (['hiragana', 'katakana', 'kanji'] as const)[index])
-    : kana.value.filter((item) => item.group === index)
+const unlocked = (id: string) => props.save.unlocked.includes(id)
+const itemsForGroup = (index: number) => kana.value.filter((item) => item.group === index)
 </script>
 <template>
   <section class="page-panel progress-page">
@@ -59,20 +52,29 @@ const itemsForGroup = (index: number) =>
     </div>
     <div class="progress-script-picker" role="group" aria-label="Colección">
       <button
-        v-for="item in ['hiragana', 'katakana', 'kanji', 'random'] as const"
+        v-for="item in ['hiragana', 'katakana', 'kanji'] as const"
         :key="item"
         :class="{ active: script === item }"
         :aria-pressed="script === item"
         @click="$emit('script', item)"
       >
-        <span lang="ja">{{ item === 'hiragana' ? 'あ' : item === 'katakana' ? 'ア' : item === 'kanji' ? '山' : '✦' }}</span>
-        {{ item === 'hiragana' ? 'Hiragana' : item === 'katakana' ? 'Katakana' : item === 'kanji' ? 'Kanji' : 'Random' }}
+        <span lang="ja">{{ item === 'hiragana' ? 'あ' : item === 'katakana' ? 'ア' : '山' }}</span>
+        {{ item === 'hiragana' ? 'Hiragana' : item === 'katakana' ? 'Katakana' : 'Kanji' }}
+      </button>
+      <button
+        class="random-collection-toggle"
+        :class="{ active: save.settings.randomMode }"
+        :aria-pressed="save.settings.randomMode"
+        @click="$emit('randomMode')"
+      >
+        <span aria-hidden="true">✦</span>
+        {{ save.settings.randomMode ? 'Random activo' : 'Random' }}
       </button>
     </div>
     <div class="progress-stats">
       <div>
         <b>{{ path.level }}</b>
-          <span>Nivel en {{ script === 'random' ? 'Random' : script }}</span>
+          <span>Nivel en {{ script }}</span>
       </div>
       <div>
         <b>{{ path.totalXp }}</b>
@@ -94,8 +96,8 @@ const itemsForGroup = (index: number) =>
     <div class="collection-layout">
       <div>
         <div class="section-title">
-          <h2>{{ script === 'kanji' ? 'Tu bosque de palabras' : script === 'random' ? 'Mezcla completa' : `Tu colección de ${script}` }}</h2>
-          <span>{{ script === 'random' ? 'Todo el contenido disponible' : `${kana.filter((k) => unlocked(k.id)).length} / ${kana.length} desbloqueados` }}</span>
+          <h2>{{ script === 'kanji' ? 'Tu bosque de palabras' : `Tu colección de ${script}` }}</h2>
+          <span>{{ kana.filter((k) => unlocked(k.id)).length }} / {{ kana.length }} desbloqueados</span>
         </div>
         <div class="kana-rows">
           <div v-for="(group, index) in groups" :key="group[0]" class="kana-row">
@@ -103,7 +105,7 @@ const itemsForGroup = (index: number) =>
               {{ group[0] }}
               <small v-if="index * 2 + 1 > path.level">Nivel {{ index * 2 + 1 }}</small>
             </span>
-            <div class="kana-cells" :class="{ 'word-cells': script === 'kanji' || (script === 'random' && group[0] === 'Kanji') }">
+            <div class="kana-cells" :class="{ 'word-cells': script === 'kanji' }">
               <button
                 v-for="k in itemsForGroup(index)"
                 :key="k.id"
@@ -134,8 +136,6 @@ const itemsForGroup = (index: number) =>
           {{
             script === 'kanji'
               ? 'Primero reconocés el significado; después practicás la lectura con cada vez menos ayuda.'
-              : script === 'random'
-                ? 'El modo random mezcla letras aprendidas, nuevas y dominadas.'
               : 'La precisión cuenta respuestas y letras que se escaparon. El dominio crece con la práctica.'
           }}
         </p>
@@ -233,8 +233,6 @@ const itemsForGroup = (index: number) =>
           {{
             selectedIsKanji
               ? 'Las palabras difíciles regresan más seguido y la ayuda desaparece gradualmente.'
-              : script === 'random'
-                ? 'El modo random mezcla letras aprendidas, nuevas y dominadas.'
               : 'Las letras que más cuestan vuelven un poco más seguido.'
           }}
         </p>
