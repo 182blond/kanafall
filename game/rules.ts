@@ -111,7 +111,10 @@ export function chooseKana(
       k.type === 'kanji'
         ? mastery[`${k.id}:${kanjiPractice}`]?.masteryScore ?? 0
         : mastery[k.id]?.masteryScore ?? 0
-    return 1 + (1 - score) * 2
+    // A fully mastered item stays in the pool for spaced review, but should
+    // yield its place to anything still being learned. This keeps review
+    // alive without trapping the player in the same familiar characters.
+    return score >= 1 ? 0.08 : 1 + (1 - score) * 2
   })
   let cursor = Math.min(0.999999, Math.max(0, random())) * weights.reduce((a, b) => a + b, 0)
   return choices.find((_, i) => (cursor -= weights[i]!) < 0) ?? choices[choices.length - 1]!

@@ -176,13 +176,19 @@ describe('weighted spawning', () => {
       assert.notEqual(chooseKana(pool, {}, pool[0]!.id, () => i / 100).id, pool[0]!.id)
     assert.equal(chooseKana([pool[0]!], {}, pool[0]!.id), pool[0])
   })
-  it('weights struggling characters three times as much as mastered ones', () => {
+  it('strongly prioritizes learning while keeping mastered characters for rare review', () => {
     const [a, b] = hiragana
     const mastery = { [a!.id]: { ...emptyMastery(), masteryScore: 1 } }
-    let weak = 0
+    let mastered = 0
     for (let i = 0; i < 1000; i++)
-      if (chooseKana([a!, b!], mastery, undefined, () => i / 1000).id === b!.id) weak++
-    assert.equal(weak, 750)
+      if (chooseKana([a!, b!], mastery, undefined, () => i / 1000).id === a!.id) mastered++
+    assert.equal(mastered, 26)
+    const allMastery = {
+      [a!.id]: { ...emptyMastery(), masteryScore: 1 },
+      [b!.id]: { ...emptyMastery(), masteryScore: 1 },
+    }
+    assert.equal(chooseKana([a!, b!], allMastery, undefined, () => 0.01), a)
+    assert.equal(chooseKana([a!, b!], allMastery, undefined, () => 0.99), b)
   })
   it('rejects an empty content pool', () => assert.throws(() => chooseKana([], {})))
 })
