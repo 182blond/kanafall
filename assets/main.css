@@ -2074,3 +2074,488 @@ select {
     margin-top: 6px;
   }
 }
+
+/* Violet night theme: a calm dark base, lavender action color and pink
+   feedback accents keep the game readable while giving the forest a new
+   magical identity. */
+:root {
+  color: #f5f0ff;
+  background: #100c1c;
+  --violet-bg: #100c1c;
+  --violet-surface: #181229;
+  --violet-surface-raised: #21183a;
+  --violet-surface-soft: #2b2047;
+  --violet-border: #4d3b70;
+  --violet-border-soft: #8d70b533;
+  --violet-text: #f5f0ff;
+  --violet-muted: #b9accb;
+  --violet-subtle: #9182a8;
+  --violet-accent: #d8b6ff;
+  --violet-accent-strong: #caa3ff;
+  --violet-accent-soft: #b88bf033;
+  --violet-pink: #f2a9d3;
+  --violet-danger: #ffadb9;
+}
+
+body {
+  color: var(--violet-text);
+  background: var(--violet-bg);
+}
+
+button {
+  border-color: #ffffff20;
+  background: #ffffff0a;
+}
+
+button:hover {
+  background: #ffffff18;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline-color: var(--violet-accent);
+}
+
+.topbar > span,
+.wordmark-kana,
+.field-caption,
+.game-footer,
+.group-label small,
+.word-cells button .word-romaji,
+.kana-detail .word-detail-title small,
+.kanji-breakdown header small,
+.collection-note,
+.setting-row p,
+.reset-zone p,
+.backup-zone p {
+  color: var(--violet-subtle);
+}
+
+.arena,
+.menu-arena {
+  border-color: var(--violet-border);
+  background:
+    radial-gradient(ellipse at 50% 105%, #6f4cae55, transparent 48%),
+    radial-gradient(ellipse at 50% -10%, #563b8055, transparent 65%),
+    var(--violet-surface);
+}
+
+.hud {
+  border-bottom-color: #ffffff12;
+  background: #1a1430d9;
+}
+
+.hud > span,
+.xp-stat,
+.input-dock p,
+.game-footer,
+.setting-row p,
+.backup-zone p {
+  color: var(--violet-muted);
+}
+
+.hud b,
+.menu-card h1,
+.page-heading h1,
+.detail-character,
+.lesson-glyph,
+.kanji-breakdown header > span,
+.component-grid > span > b {
+  color: var(--violet-text);
+}
+
+.hud .hearts {
+  color: var(--violet-pink) !important;
+}
+
+.hearts .empty {
+  color: #5b476d;
+}
+
+.playfield:before {
+  background-image: radial-gradient(circle, #cdb5ff2b 1px, transparent 1px);
+}
+
+.enemy {
+  color: #f8f0ff;
+  border-color: #c9a7ff45;
+  background: linear-gradient(145deg, #8567b533, #201535ee);
+  box-shadow: 0 0 30px #a979ff18;
+}
+
+.enemy small,
+.reading,
+.kana-aid,
+.input-dock button,
+.level-badge,
+.hero-name > span,
+.lesson-intro h2,
+.word-detail-title strong,
+.kanji-breakdown header strong,
+.kanji-breakdown > em b,
+.mastery-badge {
+  color: var(--violet-accent);
+}
+
+.enemy.urgent {
+  border-color: #f0a8d699;
+  color: #ffe3f2;
+  background: #743f664d;
+}
+
+.spirit-aura,
+.evolved .spirit-aura {
+  background: #b48af044;
+}
+
+.evolved .spirit-body,
+.radiant .spirit-body {
+  filter: saturate(1.08) drop-shadow(0 0 10px #c8a4ff66) drop-shadow(0 9px 9px #08051199);
+}
+
+.radiant .spirit-aura {
+  background: #f0a8d366;
+}
+
+.spirit-shadow {
+  background: #080511aa;
+}
+
+.input-dock {
+  border-top-color: #ffffff14;
+  background: #120d22ed;
+}
+
+.input-dock input,
+.typing-row {
+  background: #0d0918 !important;
+  border-color: #9b75d477;
+  color: #f5efff;
+}
+
+.typing-row {
+  box-shadow: 0 0 24px #a979ff12;
+}
+
+.typing-row:focus-within {
+  border-color: var(--violet-accent);
+  box-shadow: 0 0 0 3px #caa3ff1c;
+}
+
+.input-spark {
+  color: var(--violet-accent);
+}
+
+.typing-row > button {
+  background: #b88bf018;
+  color: var(--violet-muted);
+}
+
+.input-error .typing-row {
+  border-color: var(--violet-danger);
+  box-shadow: 0 0 15px #ff9ead35;
+}
+
+.input-error p,
+.danger {
+  color: var(--violet-danger);
+}
+
+.overlay {
+  background: #100c1cb8;
+}
+
+.menu-card p,
+.menu-card .menu-subtitle,
+.lesson-intro > p:not(.eyebrow) {
+  color: var(--violet-muted);
+}
+
+.eyebrow,
+.lesson-intro .eyebrow {
+  color: var(--violet-accent) !important;
+}
+
+.primary {
+  background: var(--violet-accent-strong);
+  color: #251438;
+  border-color: var(--violet-accent-strong);
+  box-shadow: 0 4px 24px #b88bf033;
+}
+
+.primary:hover {
+  background: #e0c9ff;
+}
+
+.wordmark > span:first-child,
+.quick-nav-icon,
+.save-note > span {
+  color: var(--violet-accent);
+}
+
+.quick-nav button,
+.menu-links button,
+.reset-link {
+  color: var(--violet-muted);
+}
+
+.quick-nav button:hover,
+.menu-links button:hover {
+  color: var(--violet-text);
+  background: #b88bf018;
+}
+
+.xp-stat b,
+.progress-stats b,
+.run-summary b,
+.kana-detail h2,
+.section-title h2,
+.setting-row h2,
+.reset-zone h2,
+.backup-zone h2 {
+  color: #e6d8ff;
+}
+
+.xp-line {
+  background: #0b0714;
+}
+
+.xp-line > div,
+.kana-cells button i {
+  background: var(--violet-accent);
+}
+
+.pause-button kbd,
+.lesson-reading span,
+.intro-kanji-parts span,
+.component-grid > span > small {
+  color: var(--violet-subtle);
+}
+
+.ground-line {
+  background: linear-gradient(90deg, transparent, #c5a9ff55, transparent);
+}
+
+.lesson-intro,
+.page-panel {
+  border-color: var(--violet-border);
+  background: linear-gradient(145deg, #241a3df5, #130e22fa);
+  box-shadow: 0 20px 70px #080511cc, 0 0 45px #b88bf02b;
+}
+
+.lesson-reading,
+.intro-kanji-parts b,
+.lesson-intro b,
+.kanji-parts > div > button b,
+.kana-detail dd {
+  color: #eadfff;
+}
+
+.intro-kanji-parts span,
+.kanji-parts,
+.kanji-parts > div > button,
+.component-grid > span,
+.kana-detail,
+.import-confirm {
+  border-color: var(--violet-border-soft);
+  background: #b88bf012;
+}
+
+.lesson-intro .primary {
+  background: var(--violet-accent-strong);
+}
+
+.projectiles {
+  filter: drop-shadow(0 0 3px #d8b6ff);
+}
+
+.projectiles line {
+  stroke: #d8b6ff !important;
+}
+
+.projectiles circle,
+.particle {
+  fill: #f1dfff;
+  background: #f1dfff;
+}
+
+.level-notice > span {
+  color: #f0ddff;
+  text-shadow: 0 0 22px #caa3ff;
+}
+
+.level-notice small {
+  color: #d7c3fa;
+}
+
+.combo-pop {
+  color: #f0b5df;
+}
+
+.game-footer b,
+.save-note p,
+.backup-zone .save-message {
+  color: #cbb9e5;
+}
+
+.chapter-pill,
+.script-picker,
+.progress-script-picker,
+.kanji-practice-picker button {
+  border-color: var(--violet-border-soft);
+  background: #0d091866;
+}
+
+.chapter-pill {
+  color: #d4c4ed;
+}
+
+.chapter-pill span {
+  color: #9b89b8;
+}
+
+.script-picker button,
+.progress-script-picker button,
+.kanji-practice-picker button {
+  color: #9d8eb1;
+}
+
+.script-picker button.active,
+.progress-script-picker button.active,
+.kanji-practice-picker button.active,
+.kana-cells button.selected,
+.kanji-parts > div > button.active {
+  color: #f4ebff;
+  border-color: #c9a7ff66;
+  background: #b88bf02b;
+  box-shadow: inset 0 0 0 1px #d8b6ff26;
+}
+
+.kanji-practice-picker button small,
+.kanji-parts > div > button small,
+.word-cells button small {
+  color: #a89ab9;
+}
+
+.menu-decoration {
+  background:
+    radial-gradient(circle at 10% 25%, #d8b6ff22 1px, transparent 2px),
+    radial-gradient(circle at 85% 70%, #d8b6ff38 1px, transparent 2px);
+}
+
+.menu-decoration > span {
+  color: #d6c2f52d;
+  border-color: #c9a7ff18;
+  box-shadow: 0 0 50px #b88bf00a;
+}
+
+.run-summary,
+.progress-stats,
+.setting-row,
+.backup-zone,
+.reset-zone,
+.kana-detail dl > div {
+  border-color: #ffffff14;
+}
+
+.progress-stats span,
+.section-title > span,
+.group-label,
+.kana-detail dt,
+.kana-detail > p:last-child {
+  color: var(--violet-muted);
+}
+
+.kana-cells button {
+  color: #eadfff;
+  background: #b88bf012;
+}
+
+.kana-cells button.locked {
+  color: #6c5a80;
+}
+
+.word-cells button .word-romaji {
+  color: #89799d;
+}
+
+.detail-character.word,
+.word-detail-title strong {
+  color: #ddc8ff;
+}
+
+.kanji-breakdown,
+.kanji-parts .compound-note {
+  border-color: #ffffff14;
+  color: #9889ac;
+}
+
+.kanji-breakdown > p,
+.kanji-breakdown > em {
+  color: #ab9abd;
+}
+
+.kanji-breakdown > em {
+  border-left-color: #c9a7ff80;
+  background: #b88bf012;
+}
+
+.mastery-badge {
+  border-color: #c9a7ff3d;
+}
+
+.toggle {
+  background: #5d477033;
+  border-color: #a990c244;
+}
+
+.toggle span {
+  background: #9581ae;
+}
+
+.toggle[aria-checked='true'] {
+  background: var(--violet-accent);
+  border-color: var(--violet-accent);
+}
+
+.toggle[aria-checked='true'] span {
+  background: #28173d;
+}
+
+select {
+  background: #160f28;
+  color: #eadfff;
+  border-color: #a990c255;
+}
+
+.backup-actions button {
+  border-color: #c9a7ff35;
+}
+
+.storage-warning {
+  background: #6e503733;
+  border-color: #d7ad6855;
+}
+
+.debug-panel {
+  background: #130e22f2;
+  border-color: var(--violet-border);
+}
+
+.debug-panel input {
+  background: #0d0918;
+  border-color: #a990c255;
+  color: #f5f0ff;
+}
+
+@keyframes impact {
+  0% {
+    box-shadow: 0 0 40px #f1dfff;
+  }
+}
+
+@keyframes levelGlow {
+  50% {
+    filter: drop-shadow(0 0 15px #d8b6ff);
+  }
+}
