@@ -1,6 +1,10 @@
 import { allKana, masteryKeysFor, type KanjiPractice, type KanaScript } from '../data/kana.ts'
 import { progression, unlockedKana, type Mastery } from './rules.ts'
 export const SAVE_KEY = 'kanafall.save.v1'
+export const SAVE_BACKUP_KEY = 'kanafall.save.backup.v1'
+export const SAVE_TIME_KEY = 'kanafall.save.time.v1'
+export const SAVE_BACKUP_TIME_KEY = 'kanafall.save.backup-time.v1'
+export class UnsupportedSaveVersionError extends Error {}
 export interface Settings {
   sound: boolean
   music: boolean
@@ -59,7 +63,7 @@ export function parseSave(raw: string | null): Save {
   const source = record(JSON.parse(raw))
   // A future version must never be silently overwritten by an older client.
   if (source.version !== 1 && source.version !== 2 && source.version !== 3)
-    throw new Error('Unsupported save version')
+    throw new UnsupportedSaveVersionError('Unsupported save version')
   const save = freshSave(),
     player = record(source.player),
     stats = record(source.statistics),
@@ -108,4 +112,23 @@ export function parseSave(raw: string | null): Save {
     }
   }
   return save
+}
+
+export interface SaveCandidate {
+  raw: string | null
+  savedAt: number
+  source: 'primary' | 'backup' | 'durable'
+}
+
+export function newestValidSave(candidates: readonly SaveCandidate[]) {
+  return candidates
+    .flatMap((candidate) => {
+      if (!candidate.raw) return []
+      try {
+        return [{ ...candidate, save: parseSave(candidate.raw) }]
+      } catch {
+        return []
+      }
+    })
+    .sort((a, b) => b.savedAt - a.savedAt)[0]
 }

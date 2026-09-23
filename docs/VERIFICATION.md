@@ -11,22 +11,30 @@
 
 ## Kanji learning prototype
 
-- Added 10 introductory kanji through 25 vocabulary words in five progressive units.
+- Added 20 introductory kanji through 35 words in seven progressive units, including standalone numbers `一` through `十`.
 - Added independent meaning and reading mastery, staged hiragana/furigana removal, accent-insensitive Spanish matching and weak-item weighting.
 - Added a third independent XP path and safe migration from both version 1 and version 2 saves.
 - Browser check: selected Kanji, started at level 1, received `かざん`, answered `volcán`, gained 110 points and 10 XP, and confirmed the next meaning prompt.
-- Progress check: the new collection shows 5/25 unlocked, every word with its reading, unit unlock levels, kanji focus and separate meaning/reading progress.
+- Progress check: the collection shows every word with its reading, unit unlock levels, kanji focus and separate meaning/reading progress.
 - Teaching-flow check: an unseen word opens a paused discovery card before its first exercise; the card exposes kanji, hiragana, romaji and Spanish meaning, then hands focus to an explicitly labeled Spanish-answer field.
 - Meaning feedback now states the Spanish relationship, reading feedback states the romaji relationship, and curated regional synonyms are accepted.
 - Session-flow check: the Kanji menu offers separate Significados/Español and Lecturas/Romaji runs. In a meaning run, the falling target showed `川` with “¿Qué significa esta palabra?” and the input remained labeled as a Spanish answer.
-- Updated automated result: **19 tests passed**, including the 10-kanji/25-word corpus, lesson-stage transitions and both save migrations.
+- Reading-aid check: that meaning target now shows the small hiragana `かわ`; the reading session omits the aid so the requested answer stays hidden.
+- Compound check: the collection displays `日本`, `にほん`, `nihon` and `Japón`, then decomposes it into `日` (sol/día) and `本` (origen/libro) with a warning that compound meanings are not always literal sums.
+- Kanji-detail check: every Han character currently used has a curated detail. Compound kanji are selectable; `富` identifies `宀` as roof/home and `畐` as the historical sound element associated with fullness, while base pictograms explain why further splitting would be misleading.
+- Number-expansion check: the collection now reports 35 total entries and shows `一–五` at level 11 plus `六–十` at level 13. Selecting locked `一` opens its reading, meaning, formation and memory aid without unlocking it early.
+- Save-resilience check: progress now writes to primary localStorage, a rotated previous snapshot and IndexedDB. Reload restored the existing level-4 kanji save; Settings displayed the latest save time and exposed download/import controls. Automated recovery selected the newest valid durable copy when the primary JSON was malformed.
+- Mobile keyboard check: at 390 × 844 the menu fits without horizontal overflow; with the answer focused and the visible height reduced to 430 px, the compact arena kept `日本`, its meaning prompt, five lives, pause and the full input row visible.
+- Short-viewport navigation check: the menu now scrolls inside its arena instead of clipping its lower actions. Persistent, explicitly labeled Progress and Settings controls were visible in the header and both opened their respective screens successfully.
+- Familiar-item XP now grows by 2 for each consecutive correct answer to the same item, capped at +8; a wrong answer to that item resets its streak. The target's XP burst and run summary use the same awarded amount as the saved progression.
+- Updated automated result: **20 tests passed**, including the 20-kanji/35-word corpus, alternate number readings, redundant-save recovery, lesson-stage transitions and both save migrations.
 
 ## Automated checks
 
 - `npm run build`: **passed**, official Nuxt 3 production build (120 client modules).
 - `npm run typecheck`: **passed**, strict Nuxt/Vue TypeScript checking.
 - `npm run lint`: **passed**, no lint errors or warnings.
-- `npm test`: **19 passed**, zero failures. Covers canonical kana, the 25-word kanji corpus, lesson-stage transitions, normalization, targeting, XP and level boundaries, mastery, unlocks, weighted selection, save round-trip, malformed data and version 1/2 migrations.
+- `npm test`: **20 passed**, zero failures. Covers canonical kana, the 35-word kanji corpus, lesson-stage transitions, normalization, targeting, XP and level boundaries, mastery, unlocks, weighted selection, redundant-save recovery, save round-trip, malformed data and version 1/2 migrations.
 
 ## Browser checks
 

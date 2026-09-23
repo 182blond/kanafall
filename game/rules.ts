@@ -18,6 +18,7 @@ export interface Enemy {
   xp: number
   display: string
   hint?: string
+  readingAid?: string
   answers: readonly string[]
   masteryId: string
   prompt: 'reading' | 'meaning'
@@ -35,7 +36,8 @@ export const matches = (target: Kana | Enemy, answer: string) => {
   const choices = 'answers' in target ? target.answers : target.romaji
   return choices.map(normalize).includes(normalize(answer))
 }
-export const xpForAnswer = (combo: number) => 10 + Math.min(10, Math.floor(combo / 5))
+export const xpForAnswer = (combo: number, itemStreak = 1) =>
+  10 + Math.min(10, Math.floor(combo / 5)) + Math.min(8, Math.max(0, itemStreak - 1) * 2)
 export const xpToNextLevel = (level: number) => Math.round(60 * Math.max(1, level) ** 1.4)
 export function progression(totalXp: number) {
   let level = 1,
@@ -81,6 +83,7 @@ export function lessonFor(
     return {
       display: kana.kanji!,
       hint: '¿Qué significa esta palabra?',
+      readingAid: kana.reading,
       answers: kana.meaningAnswers ?? [kana.meaning!],
       masteryId: meaningId,
       prompt: 'meaning' as const,

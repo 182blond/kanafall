@@ -2,7 +2,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { chooseKana, difficulty, findTarget, lessonFor, xpForAnswer, type Enemy } from '../game/rules'
 import { allKana, hiragana, type Kana, type KanjiPractice } from '../data/kana'
 export function useGame(
-  onCorrect: (id: string, combo: number) => void = () => {},
+  onCorrect: (id: string, combo: number, xp: number) => void = () => {},
   onWrong: (id: string) => void = () => {},
   getLevel = () => 1,
   getPool = () => hiragana.slice(0, 5),
@@ -104,12 +104,13 @@ export function useGame(
       target.effectAge = 0
       input.value = ''
       combo.value++
-      target.xp = xpForAnswer(combo.value)
+      const itemStreak = (mastery.value[target.masteryId]?.currentStreak ?? 0) + 1
+      target.xp = xpForAnswer(combo.value, itemStreak)
       runBest.value = Math.max(runBest.value, combo.value)
       runXp.value += target.xp
       runCorrect.value++
       score.value += 100 + Math.min(combo.value, 30) * 10
-      feedback.value =
+      const successMessage =
         target.kana.type === 'kanji'
           ? target.prompt === 'meaning'
             ? `¡Bien! ${target.kana.kanji} significa “${target.kana.meaning}”.`
@@ -117,8 +118,10 @@ export function useGame(
           : combo.value % 5 === 0
             ? `¡Racha de ${combo.value}!`
             : '¡Bien hecho!'
+      const itemBonus = Math.min(8, Math.max(0, itemStreak - 1) * 2)
+      feedback.value = `${successMessage}${itemBonus ? ` · Dominio +${itemBonus} XP` : ''}`
       animateHero('attack')
-      onCorrect(target.masteryId, combo.value)
+      onCorrect(target.masteryId, combo.value, target.xp)
       spawnIn = Math.min(spawnIn, 0.45)
     } else {
       const dangerous = [...active.value].sort((a, b) => b.y - a.y)[0]!

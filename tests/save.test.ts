@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { freshSave, parseSave } from '../game/save.ts'
+import { freshSave, newestValidSave, parseSave } from '../game/save.ts'
 describe('versioned save boundary', () => {
   it('returns a fresh save and round-trips valid progress', () => {
     assert.deepEqual(parseSave(null), freshSave())
@@ -69,5 +69,18 @@ describe('versioned save boundary', () => {
     assert.equal(parsed.player.paths.katakana.totalXp, 120)
     assert.deepEqual(parsed.player.paths.kanji, { totalXp: 0, level: 1 })
     assert.equal(parsed.settings.script, 'katakana')
+  })
+  it('recovers the newest valid redundant save when the primary copy is broken', () => {
+    const backup = freshSave()
+    backup.player.paths.kanji.totalXp = 120
+    const durable = freshSave()
+    durable.player.paths.kanji.totalXp = 220
+    const recovered = newestValidSave([
+      { raw: '{broken', savedAt: 300, source: 'primary' },
+      { raw: JSON.stringify(backup), savedAt: 100, source: 'backup' },
+      { raw: JSON.stringify(durable), savedAt: 200, source: 'durable' },
+    ])
+    assert.equal(recovered?.source, 'durable')
+    assert.equal(recovered?.save.player.paths.kanji.totalXp, 220)
   })
 })

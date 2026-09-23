@@ -17,7 +17,9 @@ Every entity has an ID, kana content, normalized position, fall speed, simulatio
 
 ## XP and evolution
 
-`XP(answer) = 10 + min(10, floor(combo / 5))`.
+`XP(answer) = 10 + min(10, floor(combo / 5)) + min(8, 2 × (item streak − 1))`.
+
+The item streak counts consecutive correct answers for that exact kana or kanji skill, including across runs, and resets on an incorrect answer to that item. The capped bonus lets familiar repeated material move the learner through the route faster without making one item an unlimited XP source.
 
 `XP required(level) = round(60 × level^1.4)`; this is per-level XP, with surplus carried over. Level 2 takes six accurate early answers. XP is credited and saved immediately, even if the session ends before the visual impact.
 
@@ -44,9 +46,11 @@ Readings are deterministic, standard Hepburn: shi, chi, tsu, fu. The character �
 
 ### Kanji teaching slice
 
-The initial route contains 25 words organized around `山 川 日 月 火 水 木 人 大 小`. Five-word units open at levels 1, 3, 5, 7 and 9: mountains/rivers, sun/moon, fire/water, trees/people, and big/small.
+The initial route contains 35 words organized around `山 川 日 月 火 水 木 人 大 小 一 二 三 四 五 六 七 八 九 十`. Five-word units open at levels 1, 3, 5, 7, 9, 11 and 13: mountains/rivers, sun/moon, fire/water, trees/people, big/small, numbers 1–5 and numbers 6–10. The number units teach the common standalone readings first; `四`, `七` and `九` also accept their standard alternate readings.
 
-Each word has two independent mastery records and the learner chooses one skill for the entire run: **Significados** in Spanish or **Lecturas** in romaji. Before its first exercise in that skill, an unseen word opens a discovery card with kanji, hiragana, romaji and Spanish meaning; the simulation pauses until the learner chooses to practice. Meaning exercises show the kanji with the question “¿Qué significa esta palabra?” and never place its pronunciation beneath the target. Reading exercises show hiragana for the first two attempts and then remove it.
+Each word has two independent mastery records and the learner chooses one skill for the entire run: **Significados** in Spanish or **Lecturas** in romaji. Before its first exercise in that skill, an unseen word opens a discovery card with kanji, hiragana, romaji and Spanish meaning; the simulation pauses until the learner chooses to practice. Meaning exercises show the word's small hiragana reading beneath the kanji, following the normal furigana convention, and ask “¿Qué significa esta palabra?”. Reading exercises hide that aid because the reading is the requested answer; they show hiragana only during the first two guided attempts and then remove it.
+
+The collection repeats kana and romaji beside every word. Its detail view makes each kanji in a word selectable, then presents a curated formation type, functional components, historical explanation and memory aid. It explicitly labels semantic, phonetic and merely visual roles so a mnemonic is not confused with etymology. A separate note explains that a compound's final meaning is not always the literal sum of its kanji.
 
 The menu, start button and input dock name the selected skill and answer language: Spanish for meaning, Latin letters/romaji for reading. Neutral examples demonstrate the format without revealing the active answer. Correct and corrective feedback repeat the relationship explicitly. Spanish matching ignores capitalization, surrounding spaces and accents, and accepts curated regional synonyms. Kanji mode uses vocabulary readings instead of asking learners to memorize isolated on/kun reading lists.
 

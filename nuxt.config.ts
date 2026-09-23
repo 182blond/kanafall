@@ -14,6 +14,10 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'es' },
       meta: [
         {
+          name: 'viewport',
+          content: 'width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content',
+        },
+        {
           name: 'description',
           content: 'Un pequeño espíritu, hiragana, katakana y una aventura que empieza con tu teclado.',
         },

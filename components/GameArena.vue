@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import type { useGame } from '../composables/useGame'
-import { scriptLabel, type KanjiPractice, type KanaScript } from '../data/kana'
+import { kanjiPartsFor, scriptLabel, type KanjiPractice, type KanaScript } from '../data/kana'
 import Spirit from './Spirit.vue'
 const props = defineProps<{
   game: ReturnType<typeof useGame>
@@ -18,6 +18,7 @@ const { enemies, input, score, combo, hp, status, heroState, feedback, wrongCoun
 const currentTarget = computed(() =>
   [...enemies.value].filter((enemy) => enemy.state === 'falling').sort((a, b) => b.y - a.y)[0],
 )
+const introParts = computed(() => (lessonIntro.value ? kanjiPartsFor(lessonIntro.value) : []))
 const prompt = computed(() => {
   if (lessonIntro.value) return 'PRÓXIMO PASO · Vas a responder el significado en español.'
   const target = currentTarget.value
@@ -63,7 +64,12 @@ watch(wrongCount, async () => {
 })
 onUnmounted(() => {
   if (timer) clearTimeout(timer)
+  document.documentElement.classList.remove('keyboard-open')
 })
+function keyboardState(open: boolean) {
+  document.documentElement.classList.toggle('keyboard-open', open)
+  if (open) requestAnimationFrame(() => field.value?.scrollIntoView({ block: 'end' }))
+}
 defineExpose({ focus })
 function submit() {
   props.game.submit()
@@ -115,6 +121,12 @@ async function continueLesson() {
           <span>{{ lessonIntro.romaji[0] }}</span>
         </div>
         <h2 id="new-word-title">{{ lessonIntro.meaning }}</h2>
+        <div v-if="introParts.length > 1" class="intro-kanji-parts" aria-label="Partes del compuesto">
+          <span v-for="part in introParts" :key="part.character">
+            <b lang="ja">{{ part.character }}</b>
+            {{ part.meaning }}
+          </span>
+        </div>
         <p v-if="kanjiPractice === 'meaning'">
           En esta sesión practicás el <b>significado</b>: mirá el kanji y respondé qué quiere decir en
           <b>español</b>.
@@ -155,6 +167,9 @@ async function continueLesson() {
         :data-state="enemy.state"
       >
         <span lang="ja">{{ enemy.display }}</span>
+        <span v-if="enemy.state === 'falling' && enemy.readingAid" class="kana-aid" lang="ja">
+          {{ enemy.readingAid }}
+        </span>
         <span v-if="enemy.state === 'falling' && (enemy.hint || hints)" class="reading">
           {{ enemy.hint || enemy.kana.romaji[0] }}
         </span>
@@ -190,6 +205,8 @@ async function continueLesson() {
           spellcheck="false"
           maxlength="24"
           :disabled="status !== 'playing' || !!lessonIntro"
+          @focus="keyboardState(true)"
+          @blur="keyboardState(false)"
         />
         <button type="submit" aria-label="Enviar respuesta">
           Enter

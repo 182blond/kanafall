@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { groupsFor, kanaFor, type KanaScript } from '../data/kana'
+import {
+  groupsFor,
+  kanaFor,
+  kanjiBreakdownFor,
+  kanjiPartsFor,
+  type KanaScript,
+} from '../data/kana'
 import { emptyMastery, masteryLabel } from '../game/rules'
 import type { Save } from '../game/save'
 const props = defineProps<{ save: Save; accuracy: number; script: KanaScript }>()
@@ -16,6 +22,16 @@ watch(
 const detail = computed(() => props.save.mastery[selected.value.id] ?? emptyMastery())
 const meaningDetail = computed(() => props.save.mastery[`${selected.value.id}:meaning`] ?? emptyMastery())
 const readingDetail = computed(() => props.save.mastery[`${selected.value.id}:reading`] ?? emptyMastery())
+const selectedParts = computed(() => kanjiPartsFor(selected.value))
+const activeKanji = ref('')
+watch(
+  selected,
+  (item) => {
+    activeKanji.value = item.type === 'kanji' ? (kanjiPartsFor(item)[0]?.character ?? '') : ''
+  },
+  { immediate: true },
+)
+const selectedBreakdown = computed(() => kanjiBreakdownFor(activeKanji.value))
 const overallMastery = computed(() =>
   props.script === 'kanji'
     ? (meaningDetail.value.masteryScore + readingDetail.value.masteryScore) / 2
@@ -88,7 +104,8 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
                 @click="selected = k"
               >
                 <span lang="ja">{{ k.character }}</span>
-                <small v-if="script === 'kanji'" lang="ja">{{ k.reading }}</small>
+                <small v-if="script === 'kanji'" class="word-reading" lang="ja">{{ k.reading }}</small>
+                <small v-if="script === 'kanji'" class="word-romaji">{{ k.romaji[0] }}</small>
                 <i
                   :style="{
                     width:
@@ -115,7 +132,49 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
       <aside class="kana-detail">
         <p class="eyebrow">{{ unlocked(selected.id) ? 'TU LETRA' : 'POR DESCUBRIR' }}</p>
         <div class="detail-character" :class="{ word: script === 'kanji' }" lang="ja">{{ selected.character }}</div>
-        <h2>{{ script === 'kanji' ? `${selected.reading} · ${selected.meaning}` : selected.romaji[0] }}</h2>
+        <h2 v-if="script === 'kanji'" class="word-detail-title">
+          <span lang="ja">{{ selected.reading }}</span>
+          <small>{{ selected.romaji[0] }}</small>
+          <strong>{{ selected.meaning }}</strong>
+        </h2>
+        <h2 v-else>{{ selected.romaji[0] }}</h2>
+        <div v-if="script === 'kanji' && selectedParts.length" class="kanji-parts">
+          <p>{{ selectedParts.length > 1 ? 'KANJI DEL COMPUESTO' : 'DETALLE DEL KANJI' }}</p>
+          <div>
+            <button
+              v-for="part in selectedParts"
+              :key="part.character"
+              :class="{ active: activeKanji === part.character }"
+              :aria-pressed="activeKanji === part.character"
+              @click="activeKanji = part.character"
+            >
+              <b lang="ja">{{ part.character }}</b>
+              <small>{{ part.meaning }}</small>
+            </button>
+          </div>
+          <article v-if="selectedBreakdown" class="kanji-breakdown">
+            <header>
+              <span lang="ja">{{ selectedBreakdown.character }}</span>
+              <div>
+                <strong>{{ selectedBreakdown.meaning }}</strong>
+                <small>{{ selectedBreakdown.formation }}</small>
+              </div>
+            </header>
+            <div v-if="selectedBreakdown.components.length" class="component-grid">
+              <span v-for="component in selectedBreakdown.components" :key="component.character">
+                <b lang="ja">{{ component.character }}</b>
+                <span>{{ component.meaning }}</span>
+                <small>{{ component.role }}</small>
+              </span>
+            </div>
+            <p v-else class="base-form">Es una forma base: no conviene separarla en piezas menores.</p>
+            <p>{{ selectedBreakdown.explanation }}</p>
+            <em><b>PARA RECORDAR</b>{{ selectedBreakdown.mnemonic }}</em>
+          </article>
+          <em v-if="selectedParts.length > 1" class="compound-note">
+            El significado final de una palabra no siempre es la suma literal de sus kanji.
+          </em>
+        </div>
         <span class="mastery-badge">
           {{
             unlocked(selected.id)

@@ -3,6 +3,7 @@
 @tailwind utilities;
 /* Twilight greens, pale chartreuse magic and restrained parchment accents. */
 :root {
+  --visible-height: 100dvh;
   font-family: Inter, 'Segoe UI', sans-serif;
   color: #e8efdf;
   background: #0b1517;
@@ -349,9 +350,23 @@ button:active {
   align-items: center;
   gap: 16px;
 }
-.header-actions > button {
-  font-size: 21px;
+.quick-nav {
+  display: flex;
+  gap: 7px;
+}
+.quick-nav button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
   padding: 7px 12px;
+  color: #c7d8c1;
+  font-size: 11px;
+}
+.quick-nav-icon {
+  color: #e7f1ce;
+  font-size: 18px;
+  line-height: 1;
 }
 .level-badge {
   font-size: 14px;
@@ -509,6 +524,13 @@ button:active {
     sans-serif;
   color: #c3d89d;
 }
+.kana-aid {
+  position: absolute;
+  bottom: 5px;
+  color: #a8c291;
+  font: 12px 'Yu Gothic', 'Meiryo', sans-serif;
+  letter-spacing: 0.5px;
+}
 .lesson-intro {
   position: absolute;
   z-index: 5;
@@ -522,6 +544,8 @@ button:active {
   border-radius: 22px;
   background: linear-gradient(145deg, #183638f5, #0d2225fa);
   box-shadow: 0 20px 70px #020b0dcc, 0 0 45px #b8dc7f16;
+  max-height: calc(100% - 20px);
+  overflow: auto;
 }
 .lesson-intro .eyebrow {
   margin: 0 0 8px;
@@ -544,6 +568,25 @@ button:active {
   margin: 10px 0 8px;
   color: #cceb98;
   font: 28px Georgia, serif;
+}
+.intro-kanji-parts {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 13px;
+}
+.intro-kanji-parts span {
+  padding: 5px 8px;
+  border: 1px solid #bddc9225;
+  border-radius: 8px;
+  color: #91aa9b;
+  font-size: 10px;
+}
+.intro-kanji-parts b {
+  margin-right: 4px;
+  color: #e3efc9;
+  font-size: 15px;
 }
 .lesson-intro > p:not(.eyebrow) {
   margin: 0 auto 17px;
@@ -703,6 +746,11 @@ button:active {
   visibility: hidden;
 }
 .menu-overlay {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: transparent;
   backdrop-filter: none;
 }
@@ -711,6 +759,7 @@ button:active {
   z-index: 1;
   max-width: 520px;
   width: 100%;
+  margin-block: auto;
   padding: 22px 30px;
 }
 .chapter-pill {
@@ -1124,7 +1173,7 @@ button:active {
   background: #c1e493;
 }
 .word-cells button {
-  height: 66px;
+  height: 78px;
   font-size: 21px;
   line-height: 1.1;
 }
@@ -1133,6 +1182,15 @@ button:active {
   margin-top: 5px;
   color: #91a997;
   font-size: 9px;
+}
+.word-cells button .word-reading {
+  margin-top: 4px;
+}
+.word-cells button .word-romaji {
+  margin-top: 1px;
+  color: #718c80;
+  font: 8px 'Segoe UI', sans-serif;
+  letter-spacing: 0.3px;
 }
 .kana-detail {
   border: 1px solid #c8dea61b;
@@ -1162,6 +1220,167 @@ button:active {
   font-size: 22px;
   color: #e4edc5;
   margin: 0 0 15px;
+}
+.kana-detail .word-detail-title {
+  display: grid;
+  gap: 2px;
+}
+.word-detail-title small {
+  color: #91aa9b;
+  font: 11px 'Segoe UI', sans-serif;
+  letter-spacing: 0.7px;
+}
+.word-detail-title strong {
+  margin-top: 4px;
+  color: #cce79c;
+  font: 20px Georgia, serif;
+}
+.kanji-parts {
+  margin: 0 0 17px;
+  padding: 12px;
+  border: 1px solid #bddc921c;
+  border-radius: 12px;
+  background: #071a1c4f;
+}
+.kanji-parts > p {
+  margin: 0 0 8px;
+  color: #80998e;
+  font-size: 8px;
+  letter-spacing: 1.3px;
+}
+.kanji-parts > div {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.kanji-parts > div > button {
+  min-width: 62px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: #b8d98c0b;
+}
+.kanji-parts > div > button.active {
+  border-color: #c5e59659;
+  background: #badf8820;
+}
+.kanji-parts > div > button b,
+.kanji-parts > div > button small {
+  display: block;
+}
+.kanji-parts > div > button b {
+  color: #e6f2ce;
+  font-size: 23px;
+}
+.kanji-parts > div > button small {
+  margin-top: 2px;
+  color: #9bb1a4;
+  font-size: 9px;
+}
+.kanji-breakdown {
+  margin-top: 11px;
+  padding-top: 11px;
+  border-top: 1px solid #ffffff0e;
+  text-align: left;
+}
+.kanji-breakdown header {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.kanji-breakdown header > span {
+  flex: 0 0 42px;
+  color: #e8f4cc;
+  font: 34px 'Yu Gothic', 'Meiryo', sans-serif;
+  text-align: center;
+}
+.kanji-breakdown header strong,
+.kanji-breakdown header small {
+  display: block;
+}
+.kanji-breakdown header strong {
+  color: #cce79c;
+  font: 15px Georgia, serif;
+}
+.kanji-breakdown header small {
+  margin-top: 3px;
+  color: #799388;
+  font-size: 8px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.component-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px !important;
+  margin-top: 10px;
+}
+.component-grid > span {
+  min-width: 0;
+  padding: 7px;
+  border-radius: 8px;
+  background: #b8d98c0b;
+  text-align: center;
+}
+.component-grid > span > b,
+.component-grid > span > span,
+.component-grid > span > small {
+  display: block;
+}
+.component-grid > span > b {
+  color: #e7f1cd;
+  font: 22px 'Yu Gothic', 'Meiryo', sans-serif;
+}
+.component-grid > span > span {
+  margin-top: 2px;
+  color: #a9beac;
+  font-size: 9px;
+}
+.component-grid > span > small {
+  margin-top: 3px;
+  color: #718b80;
+  font-size: 7px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.kanji-breakdown > p {
+  margin: 9px 0 0;
+  color: #95aa9e;
+  font-size: 9px;
+  line-height: 1.45;
+}
+.kanji-breakdown .base-form {
+  padding: 7px;
+  border-radius: 7px;
+  background: #b8d98c0b;
+  text-align: center;
+}
+.kanji-breakdown > em {
+  display: block;
+  margin-top: 9px;
+  padding: 8px;
+  border-left: 2px solid #bddd8c73;
+  color: #9fb397;
+  background: #aacc7a08;
+  font-size: 9px;
+  font-style: normal;
+  line-height: 1.45;
+}
+.kanji-breakdown > em b {
+  display: block;
+  margin-bottom: 3px;
+  color: #bad38e;
+  font-size: 7px;
+  letter-spacing: 1px;
+}
+.kanji-parts .compound-note {
+  display: block;
+  margin-top: 9px;
+  color: #718b80;
+  font-size: 9px;
+  font-style: normal;
+  line-height: 1.4;
 }
 .mastery-badge {
   display: inline-block;
@@ -1269,6 +1488,68 @@ select {
   font-size: 13px;
   line-height: 1.9;
   color: #a0b5a6;
+}
+.backup-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 25px 0;
+  border-top: 1px solid #ffffff13;
+}
+.backup-zone h2 {
+  margin: 0 0 7px;
+  font-size: 16px;
+  font-weight: 500;
+}
+.backup-zone p {
+  margin: 0;
+  color: #96ac9f;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.backup-actions button {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.backup-zone .save-message {
+  margin-top: 7px;
+  color: #c6df98;
+}
+.import-confirm {
+  min-width: min(100%, 330px);
+  padding: 12px;
+  border: 1px solid #bddc9230;
+  border-radius: 10px;
+  background: #071a1c50;
+}
+.import-confirm > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+.import-confirm button {
+  min-width: 0;
+  padding: 9px 13px;
+  font-size: 11px;
+}
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 .reset-zone {
   border-top: 1px solid #ffffff13;
@@ -1387,32 +1668,40 @@ select {
     transform: translateY(-8px);
   }
 }
-@media (max-height: 800px) and (min-width: 760px) {
+@media (max-height: 980px) and (min-width: 701px) {
   .menu-card h1 {
-    font-size: 70px;
-    margin-top: 13px;
+    font-size: 62px;
+    margin: 8px 0 4px;
   }
   .menu-card h1 > span {
-    margin: 9px 0 13px;
+    margin: 5px 0 9px;
   }
   .companion-stage > .spirit {
-    width: 142px;
+    width: 118px;
   }
   .menu-card .menu-subtitle {
-    font-size: 14px;
+    font-size: 13px;
   }
   .companion-stage {
-    padding-bottom: 10px;
+    margin-top: 0;
+    padding-bottom: 6px;
   }
   .menu-card .how-to {
-    margin-top: 10px;
+    margin-top: 6px;
   }
   .menu-card {
-    padding-top: 16px;
-    padding-bottom: 16px;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
   .menu-links {
+    margin-top: 4px;
+  }
+  .kanji-practice-picker {
     margin-top: 7px;
+  }
+  .menu-card > .primary {
+    margin-top: 4px;
+    padding-block: 11px;
   }
   .companion-stage > span {
     font-size: 8px;
@@ -1468,14 +1757,31 @@ select {
     font-size: 24px;
   }
   .header-actions {
-    gap: 10px;
+    gap: 7px;
   }
   .level-badge {
     font-size: 12px;
   }
+  .quick-nav {
+    gap: 5px;
+  }
+  .quick-nav button {
+    min-width: 38px;
+    min-height: 38px;
+    justify-content: center;
+    padding: 6px 9px;
+  }
+  .quick-nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
   .arena {
-    min-height: 560px;
-    height: calc(100dvh - 135px);
+    min-height: min(560px, calc(var(--visible-height) - 135px));
+    height: calc(var(--visible-height) - 135px);
     border-radius: 17px;
   }
   .playfield {
@@ -1605,7 +1911,7 @@ select {
     grid-template-columns: repeat(2, 1fr);
   }
   .word-cells button {
-    height: 62px;
+    height: 76px;
   }
   .kana-row {
     gap: 10px;
@@ -1642,11 +1948,97 @@ select {
   .reset-zone {
     align-items: start;
   }
+  .backup-zone {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .backup-actions {
+    justify-content: stretch;
+  }
+  .backup-actions button {
+    flex: 1;
+  }
   .run-summary {
     gap: 12px;
   }
   .pause-card h1 {
     font-size: 48px;
+  }
+}
+@media (max-width: 700px) {
+  .keyboard-open body {
+    overflow: hidden;
+  }
+  .keyboard-open .shell {
+    width: 100%;
+    height: var(--visible-height);
+    padding: 0;
+  }
+  .keyboard-open .topbar,
+  .keyboard-open .game-footer {
+    display: none;
+  }
+  .keyboard-open .arena {
+    width: 100%;
+    height: var(--visible-height);
+    min-height: 0;
+    border-radius: 0;
+  }
+  .keyboard-open .hud {
+    height: 44px;
+    padding: 5px 10px;
+  }
+  .keyboard-open .score-stat,
+  .keyboard-open .xp-stat,
+  .keyboard-open .combo-stat {
+    display: none;
+  }
+  .keyboard-open .hud .hearts {
+    margin-left: 0;
+  }
+  .keyboard-open .pause-button {
+    margin-left: auto;
+  }
+  .keyboard-open .playfield {
+    inset: 44px 0 80px;
+  }
+  .keyboard-open .field-caption,
+  .keyboard-open .player,
+  .keyboard-open .hero-name,
+  .keyboard-open .ground-line {
+    display: none;
+  }
+  .keyboard-open .input-dock {
+    height: 80px;
+    padding: 6px 10px 7px;
+    background: #0a1d20f5;
+  }
+  .keyboard-open .input-dock p {
+    margin-bottom: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .keyboard-open .typing-row input {
+    padding-block: 8px !important;
+    font-size: 16px;
+  }
+  .keyboard-open .input-spark {
+    font-size: 19px;
+    padding-left: 11px;
+  }
+  .keyboard-open .enemy {
+    height: 62px;
+    min-width: 82px;
+    font-size: 32px;
+  }
+  .keyboard-open .reading {
+    bottom: -18px;
+    font-size: 11px;
+  }
+  .keyboard-open .kana-aid {
+    bottom: 3px;
+    font-size: 10px;
   }
 }
 @media (max-width: 700px) and (max-height: 650px) {

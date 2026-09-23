@@ -12,11 +12,11 @@ import GameArena from './components/GameArena.vue'
 import ProgressScreen from './components/ProgressScreen.vue'
 import SettingsScreen from './components/SettingsScreen.vue'
 const progress = useProgress()
-const { save, player, pool, accuracy, ready, storageWarning } = progress
+const { save, player, pool, accuracy, ready, storageWarning, saveMessage, lastSavedAt } = progress
 const audio = useAudio(() => save.value.settings)
 const game = useGame(
-  (id, combo) => {
-    progress.answer(id, true, combo)
+  (id, combo, xp) => {
+    progress.answer(id, true, combo, xp)
     audio.play('correct')
     audio.play('attack')
   },
@@ -38,6 +38,10 @@ const page = ref<'game' | 'progress' | 'settings'>('game'),
 const arena = ref<InstanceType<typeof GameArena>>()
 const isDev = import.meta.dev
 let noticeTimer: ReturnType<typeof setTimeout> | undefined
+const syncVisibleViewport = () => {
+  const viewport = window.visualViewport
+  document.documentElement.style.setProperty('--visible-height', `${viewport?.height ?? window.innerHeight}px`)
+}
 const groups = computed(() => groupsFor(save.value.settings.script))
 const currentGroup = computed(() =>
   groups.value[Math.min(groups.value.length - 1, Math.ceil(player.value.level / 2) - 1)]!,
@@ -194,10 +198,16 @@ function visibility() {
 onMounted(() => {
   document.addEventListener('keydown', keyboard)
   document.addEventListener('visibilitychange', visibility)
+  syncVisibleViewport()
+  window.addEventListener('resize', syncVisibleViewport)
+  window.visualViewport?.addEventListener('resize', syncVisibleViewport)
 })
 onUnmounted(() => {
   document.removeEventListener('keydown', keyboard)
   document.removeEventListener('visibilitychange', visibility)
+  window.removeEventListener('resize', syncVisibleViewport)
+  window.visualViewport?.removeEventListener('resize', syncVisibleViewport)
+  document.documentElement.classList.remove('keyboard-open')
   if (noticeTimer) clearTimeout(noticeTimer)
 })
 </script>
@@ -216,7 +226,16 @@ onUnmounted(() => {
       <span>EL BOSQUE DE LAS LETRAS</span>
       <div class="header-actions">
         <span class="level-badge">✧ Nivel {{ player.level }}</span>
-        <button aria-label="Abrir ajustes" @click="openPage('settings')">⚙</button>
+        <nav class="quick-nav" aria-label="Accesos rápidos">
+          <button aria-label="Abrir progreso" @click="openPage('progress')">
+            <span class="quick-nav-icon" aria-hidden="true">◫</span>
+            <span class="quick-nav-label">Progreso</span>
+          </button>
+          <button aria-label="Abrir ajustes" @click="openPage('settings')">
+            <span class="quick-nav-icon" aria-hidden="true">⚙</span>
+            <span class="quick-nav-label">Ajustes</span>
+          </button>
+        </nav>
       </div>
     </header>
     <p v-if="storageWarning" class="storage-warning" role="status">{{ storageWarning }}</p>
@@ -395,8 +414,12 @@ onUnmounted(() => {
       v-else
       :settings="save.settings"
       :reset-requested="resetRequested"
+      :last-saved-at="lastSavedAt"
+      :save-message="saveMessage"
       @back="back"
       @change="changeSettings"
+      @export-save="progress.downloadBackup"
+      @import-save="progress.importBackup"
       @reset="reset"
     />
     <aside v-if="isDev && debugOpen" class="debug-panel">

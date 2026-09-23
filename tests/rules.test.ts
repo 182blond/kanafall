@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { hiragana, kanjiWords, katakana } from '../data/kana.ts'
+import { hiragana, kanjiBreakdownFor, kanjiPartsFor, kanjiWords, katakana } from '../data/kana.ts'
 import {
   chooseKana,
   difficulty,
@@ -66,17 +66,50 @@ describe('Japanese content and matching', () => {
     assert.equal(findTarget(enemies, 'shi'), undefined)
     assert.equal(findTarget([make(2, 20), make(1, 20)], 'a')?.id, 1)
   })
-  it('contains a 10-kanji, 25-word learning path', () => {
-    assert.equal(kanjiWords.length, 25)
-    assert.deepEqual(new Set(kanjiWords.map((word) => word.focusKanji)), new Set('山川日月火水木人大小'))
+  it('contains a 20-kanji, 35-word learning path', () => {
+    assert.equal(kanjiWords.length, 35)
+    assert.deepEqual(
+      new Set(kanjiWords.map((word) => word.focusKanji)),
+      new Set('山川日月火水木人大小一二三四五六七八九十'),
+    )
     assert.ok(kanjiWords.every((word) => word.reading && word.meaning && word.kanji))
+    assert.ok(kanjiWords.every((word) => kanjiPartsFor(word).every((part) => part.meaning !== 'significado por aprender')))
+    const japan = kanjiWords.find((word) => word.kanji === '日本')!
+    assert.deepEqual(kanjiPartsFor(japan), [
+      { character: '日', meaning: 'sol · día' },
+      { character: '本', meaning: 'origen · libro' },
+    ])
+    const usedKanji = new Set(kanjiWords.flatMap((word) => kanjiPartsFor(word).map((part) => part.character)))
+    assert.ok([...usedKanji].every((character) => kanjiBreakdownFor(character)))
+    assert.deepEqual(
+      kanjiBreakdownFor('富')?.components.map(({ character, meaning }) => ({ character, meaning })),
+      [
+        { character: '宀', meaning: 'techo · casa' },
+        { character: '畐', meaning: 'lleno · abundante' },
+      ],
+    )
+    assert.ok(matches(kanjiWords.find((word) => word.kanji === '四')!, 'shi'))
+    assert.ok(matches(kanjiWords.find((word) => word.kanji === '七')!, 'shichi'))
+    assert.ok(matches(kanjiWords.find((word) => word.kanji === '九')!, 'ku'))
   })
   it('keeps meaning and reading in separate kanji practice sessions', () => {
     const word = kanjiWords[0]!
     const meaning = lessonFor(word, {}, 'meaning')
     assert.deepEqual(
-      { display: meaning.display, hint: meaning.hint, prompt: meaning.prompt, answers: meaning.answers },
-      { display: '山', hint: '¿Qué significa esta palabra?', prompt: 'meaning', answers: ['montaña'] },
+      {
+        display: meaning.display,
+        hint: meaning.hint,
+        readingAid: meaning.readingAid,
+        prompt: meaning.prompt,
+        answers: meaning.answers,
+      },
+      {
+        display: '山',
+        hint: '¿Qué significa esta palabra?',
+        readingAid: 'やま',
+        prompt: 'meaning',
+        answers: ['montaña'],
+      },
     )
     const assisted = lessonFor(word, {}, 'reading')
     assert.equal(assisted.display, '山')
@@ -90,10 +123,14 @@ describe('Japanese content and matching', () => {
   })
 })
 describe('progression and mastery', () => {
-  it('awards capped combo XP bonuses', () => {
+  it('awards capped combo and individual mastery streak XP bonuses', () => {
     assert.equal(xpForAnswer(1), 10)
     assert.equal(xpForAnswer(5), 11)
     assert.equal(xpForAnswer(100), 20)
+    assert.equal(xpForAnswer(1, 2), 12)
+    assert.equal(xpForAnswer(1, 3), 14)
+    assert.equal(xpForAnswer(1, 5), 18)
+    assert.equal(xpForAnswer(100, 100), 28)
   })
   it('handles boundaries and multiple levels without losing overflow XP', () => {
     assert.deepEqual(progression(0), { level: 1, xp: 0, required: 60 })
@@ -122,6 +159,8 @@ describe('progression and mastery', () => {
     assert.equal(unlockedKana(19).length, 46)
     assert.equal(unlockedKana(1, 'kanji').length, 5)
     assert.equal(unlockedKana(9, 'kanji').length, 25)
+    assert.equal(unlockedKana(11, 'kanji').length, 30)
+    assert.equal(unlockedKana(13, 'kanji').length, 35)
     assert.equal(difficulty(1).maxEnemies, 1)
     assert.equal(difficulty(6).maxEnemies, 2)
     assert.equal(difficulty(11).maxEnemies, 3)
