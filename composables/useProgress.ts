@@ -9,6 +9,7 @@ import {
   SAVE_TIME_KEY,
   UnsupportedSaveVersionError,
 } from '../game/save'
+import { allKana } from '../data/kana'
 import { readDurableSave, writeDurableSave } from '../game/saveStorage'
 import { progression, unlockedKana, updateMastery, xpForAnswer } from '../game/rules'
 import { trackGameEvent } from '../game/events'
@@ -20,8 +21,15 @@ export function useProgress() {
     ready = ref(false)
   let protectedSave = false
   let durableWrite = Promise.resolve()
-  const player = computed(() => progression(save.value.player.paths[save.value.settings.script].totalXp))
-  const pool = computed(() => unlockedKana(player.value.level, save.value.settings.script))
+  const player = computed(() => {
+    const script = save.value.settings.script
+    if (script === 'random') {
+      const totalXp = Object.values(save.value.player.paths).reduce((sum, path) => sum + path.totalXp, 0)
+      return progression(totalXp)
+    }
+    return progression(save.value.player.paths[script].totalXp)
+  })
+  const pool = computed(() => (save.value.settings.script === 'random' ? allKana : unlockedKana(player.value.level, save.value.settings.script)))
   const accuracy = computed(() => {
     const s = save.value.statistics
     return s.correct + s.incorrect ? Math.round((s.correct / (s.correct + s.incorrect)) * 100) : 0
@@ -56,11 +64,12 @@ export function useProgress() {
         'No se pudo guardar en este navegador. Tu progreso seguirá disponible durante esta sesión.'
     }
   }
-  function addXp(amount: number) {
+  function addXp(amount: number, itemId?: string) {
     const previous = player.value.level
-    const path = save.value.player.paths[save.value.settings.script]
+    const source = itemId ? allKana.find((item) => item.id === itemId)?.type : undefined
+    const path = save.value.player.paths[source ?? (save.value.settings.script === 'random' ? 'hiragana' : save.value.settings.script)]
     path.totalXp += amount
-    path.level = player.value.level
+    path.level = progression(path.totalXp).level
     save.value.player.totalXp = Object.values(save.value.player.paths).reduce(
       (sum, current) => sum + current.totalXp,
       0,
@@ -80,7 +89,7 @@ export function useProgress() {
     if (correct) {
       save.value.statistics.correct++
       save.value.statistics.bestCombo = Math.max(save.value.statistics.bestCombo, combo)
-      addXp(awardedXp ?? xpForAnswer(combo, itemStreak))
+      addXp(awardedXp ?? xpForAnswer(combo, itemStreak), id)
     } else {
       save.value.statistics.incorrect++
       persist()

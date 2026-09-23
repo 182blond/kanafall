@@ -5,15 +5,19 @@ import {
   kanaFor,
   kanjiBreakdownFor,
   kanjiPartsFor,
-  type KanaScript,
+  type PracticeScript,
 } from '../data/kana'
 import { emptyMastery, masteryLabel } from '../game/rules'
 import type { Save } from '../game/save'
-const props = defineProps<{ save: Save; accuracy: number; script: KanaScript }>()
-defineEmits<{ back: []; script: [script: KanaScript] }>()
+const props = defineProps<{ save: Save; accuracy: number; script: PracticeScript }>()
+defineEmits<{ back: []; script: [script: PracticeScript] }>()
 const kana = computed(() => kanaFor(props.script))
 const groups = computed(() => groupsFor(props.script))
-const path = computed(() => props.save.player.paths[props.script])
+const path = computed(() => {
+  if (props.script !== 'random') return props.save.player.paths[props.script]
+  const totalXp = Object.values(props.save.player.paths).reduce((sum, current) => sum + current.totalXp, 0)
+  return { level: Math.max(...Object.values(props.save.player.paths).map((current) => current.level)), totalXp }
+})
 const selected = ref(kana.value[0]!)
 watch(
   () => props.script,
@@ -32,12 +36,17 @@ watch(
   { immediate: true },
 )
 const selectedBreakdown = computed(() => kanjiBreakdownFor(activeKanji.value))
+const selectedIsKanji = computed(() => selected.value.type === 'kanji')
 const overallMastery = computed(() =>
-  props.script === 'kanji'
+  selectedIsKanji.value
     ? (meaningDetail.value.masteryScore + readingDetail.value.masteryScore) / 2
     : detail.value.masteryScore,
 )
-const unlocked = (id: string) => props.save.unlocked.includes(id)
+const unlocked = (id: string) => props.script === 'random' || props.save.unlocked.includes(id)
+const itemsForGroup = (index: number) =>
+  props.script === 'random'
+    ? kana.value.filter((item) => item.type === (['hiragana', 'katakana', 'kanji'] as const)[index])
+    : kana.value.filter((item) => item.group === index)
 </script>
 <template>
   <section class="page-panel progress-page">
@@ -50,20 +59,20 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
     </div>
     <div class="progress-script-picker" role="group" aria-label="Colección">
       <button
-        v-for="item in ['hiragana', 'katakana', 'kanji'] as const"
+        v-for="item in ['hiragana', 'katakana', 'kanji', 'random'] as const"
         :key="item"
         :class="{ active: script === item }"
         :aria-pressed="script === item"
         @click="$emit('script', item)"
       >
-        <span lang="ja">{{ item === 'hiragana' ? 'あ' : item === 'katakana' ? 'ア' : '山' }}</span>
-        {{ item === 'hiragana' ? 'Hiragana' : item === 'katakana' ? 'Katakana' : 'Kanji' }}
+        <span lang="ja">{{ item === 'hiragana' ? 'あ' : item === 'katakana' ? 'ア' : item === 'kanji' ? '山' : '✦' }}</span>
+        {{ item === 'hiragana' ? 'Hiragana' : item === 'katakana' ? 'Katakana' : item === 'kanji' ? 'Kanji' : 'Random' }}
       </button>
     </div>
     <div class="progress-stats">
       <div>
         <b>{{ path.level }}</b>
-        <span>Nivel en {{ script }}</span>
+          <span>Nivel en {{ script === 'random' ? 'Random' : script }}</span>
       </div>
       <div>
         <b>{{ path.totalXp }}</b>
@@ -85,8 +94,8 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
     <div class="collection-layout">
       <div>
         <div class="section-title">
-          <h2>{{ script === 'kanji' ? 'Tu bosque de palabras' : `Tu colección de ${script}` }}</h2>
-          <span>{{ kana.filter((k) => unlocked(k.id)).length }} / {{ kana.length }} desbloqueados</span>
+          <h2>{{ script === 'kanji' ? 'Tu bosque de palabras' : script === 'random' ? 'Mezcla completa' : `Tu colección de ${script}` }}</h2>
+          <span>{{ script === 'random' ? 'Todo el contenido disponible' : `${kana.filter((k) => unlocked(k.id)).length} / ${kana.length} desbloqueados` }}</span>
         </div>
         <div class="kana-rows">
           <div v-for="(group, index) in groups" :key="group[0]" class="kana-row">
@@ -94,9 +103,9 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
               {{ group[0] }}
               <small v-if="index * 2 + 1 > path.level">Nivel {{ index * 2 + 1 }}</small>
             </span>
-            <div class="kana-cells" :class="{ 'word-cells': script === 'kanji' }">
+            <div class="kana-cells" :class="{ 'word-cells': script === 'kanji' || (script === 'random' && group[0] === 'Kanji') }">
               <button
-                v-for="k in kana.filter((k) => k.group === index)"
+                v-for="k in itemsForGroup(index)"
                 :key="k.id"
                 :class="{ selected: selected.id === k.id, locked: !unlocked(k.id) }"
                 :aria-pressed="selected.id === k.id"
@@ -104,12 +113,12 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
                 @click="selected = k"
               >
                 <span lang="ja">{{ k.character }}</span>
-                <small v-if="script === 'kanji'" class="word-reading" lang="ja">{{ k.reading }}</small>
-                <small v-if="script === 'kanji'" class="word-romaji">{{ k.romaji[0] }}</small>
+                <small v-if="k.type === 'kanji'" class="word-reading" lang="ja">{{ k.reading }}</small>
+                <small v-if="k.type === 'kanji'" class="word-romaji">{{ k.romaji[0] }}</small>
                 <i
                   :style="{
                     width:
-                      (script === 'kanji'
+                      (k.type === 'kanji'
                         ? ((save.mastery[`${k.id}:meaning`]?.masteryScore ?? 0) +
                             (save.mastery[`${k.id}:reading`]?.masteryScore ?? 0)) /
                           2
@@ -125,20 +134,22 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
           {{
             script === 'kanji'
               ? 'Primero reconocés el significado; después practicás la lectura con cada vez menos ayuda.'
+              : script === 'random'
+                ? 'El modo random mezcla letras aprendidas, nuevas y dominadas.'
               : 'La precisión cuenta respuestas y letras que se escaparon. El dominio crece con la práctica.'
           }}
         </p>
       </div>
       <aside class="kana-detail">
         <p class="eyebrow">{{ unlocked(selected.id) ? 'TU LETRA' : 'POR DESCUBRIR' }}</p>
-        <div class="detail-character" :class="{ word: script === 'kanji' }" lang="ja">{{ selected.character }}</div>
-        <h2 v-if="script === 'kanji'" class="word-detail-title">
+        <div class="detail-character" :class="{ word: selectedIsKanji }" lang="ja">{{ selected.character }}</div>
+        <h2 v-if="selectedIsKanji" class="word-detail-title">
           <span lang="ja">{{ selected.reading }}</span>
           <small>{{ selected.romaji[0] }}</small>
           <strong>{{ selected.meaning }}</strong>
         </h2>
         <h2 v-else>{{ selected.romaji[0] }}</h2>
-        <div v-if="script === 'kanji' && selectedParts.length" class="kanji-parts">
+        <div v-if="selectedIsKanji && selectedParts.length" class="kanji-parts">
           <p>{{ selectedParts.length > 1 ? 'KANJI DEL COMPUESTO' : 'DETALLE DEL KANJI' }}</p>
           <div>
             <button
@@ -182,7 +193,7 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
               : `Se abre en nivel ${selected.group * 2 + 1}`
           }}
         </span>
-        <dl v-if="script !== 'kanji'">
+        <dl v-if="!selectedIsKanji">
           <div>
             <dt>Precisión</dt>
             <dd>{{ detail.attempts ? Math.round((detail.correct / detail.attempts) * 100) + '%' : '—' }}</dd>
@@ -220,8 +231,10 @@ const unlocked = (id: string) => props.save.unlocked.includes(id)
         </dl>
         <p>
           {{
-            script === 'kanji'
+            selectedIsKanji
               ? 'Las palabras difíciles regresan más seguido y la ayuda desaparece gradualmente.'
+              : script === 'random'
+                ? 'El modo random mezcla letras aprendidas, nuevas y dominadas.'
               : 'Las letras que más cuestan vuelven un poco más seguido.'
           }}
         </p>

@@ -31,10 +31,12 @@
 
 ## Automated checks
 
+- Random mode check: the fourth selector option mixes all 127 current items, bypasses unlocks and mastery weighting, and preserves the three underlying XP paths.
+
 - `npm run build`: **passed**, official Nuxt 3 production build (120 client modules).
 - `npm run typecheck`: **passed**, strict Nuxt/Vue TypeScript checking.
 - `npm run lint`: **passed**, no lint errors or warnings.
-- `npm test`: **20 passed**, zero failures. Covers canonical kana, the 35-word kanji corpus, lesson-stage transitions, normalization, targeting, XP and level boundaries, mastery, unlocks, weighted selection, redundant-save recovery, save round-trip, malformed data and version 1/2 migrations.
+- `npm test`: **22 passed**, zero failures. Covers canonical kana, the 35-word kanji corpus, lesson-stage transitions, normalization, targeting, XP and level boundaries, mastery, unlocks, weighted and random selection, redundant-save recovery, save round-trip, malformed data and version 1/2 migrations.
 
 ## Browser checks
 

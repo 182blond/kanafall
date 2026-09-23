@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import type { useGame } from '../composables/useGame'
-import { kanjiPartsFor, scriptLabel, type KanjiPractice, type KanaScript } from '../data/kana'
+import { kanjiPartsFor, scriptLabel, type KanjiPractice, type PracticeScript } from '../data/kana'
 import Spirit from './Spirit.vue'
 const props = defineProps<{
   game: ReturnType<typeof useGame>
@@ -11,7 +11,7 @@ const props = defineProps<{
   levelNotice: string
   reducedMotion: boolean
   hints: boolean
-  script: KanaScript
+  script: PracticeScript
   kanjiPractice: KanjiPractice
 }>()
 const { enemies, input, score, combo, hp, status, heroState, feedback, wrongCount, lessonIntro } = props.game

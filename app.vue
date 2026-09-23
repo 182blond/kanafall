@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useGame } from './composables/useGame'
 import { useProgress } from './composables/useProgress'
 import { useAudio } from './composables/useAudio'
-import { allKana, groupsFor, scriptJapanese, type KanaScript } from './data/kana'
+import { allKana, groupsFor, scriptJapanese, type PracticeScript } from './data/kana'
 import { xpToNextLevel } from './game/rules'
 import { trackGameEvent } from './game/events'
 import type { Settings } from './game/save'
@@ -28,6 +28,7 @@ const game = useGame(
   () => pool.value,
   () => audio.play('impact'),
   () => save.value.settings.kanjiPractice,
+  () => save.value.settings.script === 'random',
 )
 const { status, score, runBest, runXp, runCorrect, runIncorrect } = game
 const page = ref<'game' | 'progress' | 'settings'>('game'),
@@ -148,9 +149,9 @@ function changeSettings(settings: Settings) {
   audio.unlock()
   save.value.settings = settings
 }
-function selectScript(script: KanaScript) {
+function selectScript(script: PracticeScript) {
   save.value.settings.script = script
-  debugKana.value = allKana.find((kana) => kana.type === script)!.id
+  debugKana.value = (script === 'random' ? allKana[0] : allKana.find((kana) => kana.type === script))!.id
 }
 function selectKanjiPractice(practice: 'meaning' | 'reading') {
   save.value.settings.kanjiPractice = practice
@@ -249,7 +250,7 @@ onUnmounted(() => {
           :required="player.required"
           :level-notice="levelNotice"
           :reduced-motion="save.settings.reducedMotion"
-          :hints="save.settings.script !== 'kanji' && pool.reduce((total, kana) => total + (save.mastery[kana.id]?.correct ?? 0), 0) < 6"
+          :hints="save.settings.script !== 'kanji' && save.settings.script !== 'random' && pool.reduce((total, kana) => total + (save.mastery[kana.id]?.correct ?? 0), 0) < 6"
           :script="save.settings.script"
           :kanji-practice="save.settings.kanjiPractice"
         />
@@ -265,14 +266,14 @@ onUnmounted(() => {
             </div>
             <div class="script-picker" role="group" aria-label="Sistema de escritura">
               <button
-                v-for="script in ['hiragana', 'katakana', 'kanji'] as const"
+                v-for="script in ['hiragana', 'katakana', 'kanji', 'random'] as const"
                 :key="script"
                 :class="{ active: save.settings.script === script }"
                 :aria-pressed="save.settings.script === script"
                 @click="selectScript(script)"
               >
-                <span lang="ja">{{ script === 'hiragana' ? 'あ' : script === 'katakana' ? 'ア' : '山' }}</span>
-                {{ script === 'hiragana' ? 'Hiragana' : script === 'katakana' ? 'Katakana' : 'Kanji' }}
+                <span lang="ja">{{ script === 'hiragana' ? 'あ' : script === 'katakana' ? 'ア' : script === 'kanji' ? '山' : '✦' }}</span>
+                {{ script === 'hiragana' ? 'Hiragana' : script === 'katakana' ? 'Katakana' : script === 'kanji' ? 'Kanji' : 'Random' }}
               </button>
             </div>
             <h1>
@@ -298,10 +299,15 @@ onUnmounted(() => {
                 </button>
               </div>
             </div>
-            <p v-else class="menu-subtitle">
+            <p v-else-if="save.settings.script !== 'random'" class="menu-subtitle">
               Un pequeño espíritu.
               <br />
               Un mundo por aprender.
+            </p>
+            <p v-else class="menu-subtitle random-subtitle">
+              Todo el bosque mezclado.
+              <br />
+              Cualquier letra puede aparecer.
             </p>
             <div class="companion-stage">
               <div class="orbit"></div>
@@ -318,6 +324,8 @@ onUnmounted(() => {
                   ? save.settings.kanjiPractice === 'meaning'
                     ? 'Practicar significados'
                     : 'Practicar lecturas'
+                  : save.settings.script === 'random'
+                    ? 'Practicar al azar'
                   : save.statistics.runs
                     ? 'Volver al bosque'
                     : 'Jugar'
@@ -335,6 +343,8 @@ onUnmounted(() => {
                   ? save.settings.kanjiPractice === 'meaning'
                     ? 'Mirá el kanji y respondé qué significa en español.'
                     : 'Mirá el kanji y escribí su lectura en romaji.'
+                  : save.settings.script === 'random'
+                    ? 'Puede aparecer cualquier hiragana, katakana o kanji.'
                   : `Leé el ${save.settings.script}. Escribí su romaji.`
               }}
               <kbd>Enter ↵</kbd>

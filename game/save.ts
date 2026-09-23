@@ -1,4 +1,4 @@
-import { allKana, masteryKeysFor, type KanjiPractice, type KanaScript } from '../data/kana.ts'
+import { allKana, masteryKeysFor, type KanjiPractice, type KanaScript, type PracticeScript } from '../data/kana.ts'
 import { progression, unlockedKana, type Mastery } from './rules.ts'
 export const SAVE_KEY = 'kanafall.save.v1'
 export const SAVE_BACKUP_KEY = 'kanafall.save.backup.v1'
@@ -10,7 +10,7 @@ export interface Settings {
   music: boolean
   reducedMotion: boolean
   speed: number
-  script: KanaScript
+  script: PracticeScript
   kanjiPractice: KanjiPractice
 }
 export interface Save {
@@ -86,7 +86,7 @@ export function parseSave(raw: string | null): Save {
     save.statistics[key] = count(stats[key])
   for (const key of ['sound', 'music', 'reducedMotion'] as const)
     if (typeof settings[key] === 'boolean') save.settings[key] = settings[key]
-  if (settings.script === 'hiragana' || settings.script === 'katakana' || settings.script === 'kanji')
+  if (settings.script === 'hiragana' || settings.script === 'katakana' || settings.script === 'kanji' || settings.script === 'random')
     save.settings.script = settings.script
   if (settings.kanjiPractice === 'meaning' || settings.kanjiPractice === 'reading')
     save.settings.kanjiPractice = settings.kanjiPractice

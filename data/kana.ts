@@ -1,5 +1,6 @@
 export type SyllabaryScript = 'hiragana' | 'katakana'
 export type KanaScript = SyllabaryScript | 'kanji'
+export type PracticeScript = KanaScript | 'random'
 export type KanjiPractice = 'meaning' | 'reading'
 
 export interface Kana {
@@ -375,16 +376,22 @@ export const kanjiWords: Kana[] = kanjiUnits.flatMap((unit, group) =>
 )
 
 export const allKana = [...hiragana, ...katakana, ...kanjiWords]
-export const kanaFor = (script: KanaScript) =>
-  script === 'hiragana' ? hiragana : script === 'katakana' ? katakana : kanjiWords
-export const scriptLabel = (script: KanaScript) =>
-  script === 'hiragana' ? 'Hiragana' : script === 'katakana' ? 'Katakana' : 'Kanji'
+export const kanaFor = (script: PracticeScript) =>
+  script === 'hiragana' ? hiragana : script === 'katakana' ? katakana : script === 'kanji' ? kanjiWords : allKana
+export const scriptLabel = (script: PracticeScript) =>
+  script === 'hiragana' ? 'Hiragana' : script === 'katakana' ? 'Katakana' : script === 'kanji' ? 'Kanji' : 'Random'
 export const scriptJapanese = (script: KanaScript) =>
   script === 'hiragana' ? 'ひらがな' : script === 'katakana' ? 'カタカナ' : '漢字'
 
-export const groupsFor = (script: KanaScript) =>
+export const groupsFor = (script: PracticeScript) =>
   script === 'kanji'
     ? kanjiUnits.map((unit) => [unit.name, unit.glyphs, `${unit.words.length} palabras`] as const)
+    : script === 'random'
+      ? ([
+          ['Hiragana', 'あいう', '46 letras'],
+          ['Katakana', 'アイウ', '46 letras'],
+          ['Kanji', '山日月', '35 palabras'],
+        ] as const)
     : groupNames.map((name, index) => [name, characters[script][index]!, romajiGroups[index]!] as const)
 
 export const masteryKeysFor = (item: Kana) =>

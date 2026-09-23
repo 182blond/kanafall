@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { hiragana, kanjiBreakdownFor, kanjiPartsFor, kanjiWords, katakana } from '../data/kana.ts'
+import { allKana, hiragana, kanjiBreakdownFor, kanjiPartsFor, kanjiWords, katakana, kanaFor, scriptLabel } from '../data/kana.ts'
 import {
   chooseKana,
   difficulty,
@@ -167,6 +167,9 @@ describe('progression and mastery', () => {
     assert.ok(difficulty(10).speed > difficulty(1).speed)
     assert.ok(difficulty(1000, 99999).speed <= 17)
     assert.ok(difficulty(1000).interval >= 1.4)
+    assert.equal(unlockedKana(1, 'random').length, allKana.length)
+    assert.equal(kanaFor('random').length, allKana.length)
+    assert.equal(scriptLabel('random'), 'Random')
   })
 })
 describe('weighted spawning', () => {
@@ -191,4 +194,14 @@ describe('weighted spawning', () => {
     assert.equal(chooseKana([a!, b!], allMastery, undefined, () => 0.99), b)
   })
   it('rejects an empty content pool', () => assert.throws(() => chooseKana([], {})))
+
+  it('ignores mastery weighting in random mode', () => {
+    const [mastered, fresh] = hiragana
+    const mastery = { [mastered!.id]: { ...emptyMastery(), masteryScore: 1 } }
+    let masteredCount = 0
+    for (let i = 0; i < 1000; i++)
+      if (chooseKana([mastered!, fresh!], mastery, undefined, () => i / 1000, 'meaning', true).id === mastered!.id)
+        masteredCount++
+    assert.equal(masteredCount, 500)
+  })
 })

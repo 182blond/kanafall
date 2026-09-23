@@ -10,6 +10,13 @@ describe('versioned save boundary', () => {
     save.statistics.correct = 6
     assert.deepEqual(parseSave(JSON.stringify(save)), save)
   })
+  it('persists random practice mode without creating a separate progression path', () => {
+    const save = freshSave()
+    save.settings.script = 'random'
+    const parsed = parseSave(JSON.stringify(save))
+    assert.equal(parsed.settings.script, 'random')
+    assert.deepEqual(Object.keys(parsed.player.paths), ['hiragana', 'katakana', 'kanji'])
+  })
   it('reconstructs level and unlocks instead of trusting inconsistent stored fields', () => {
     const save = freshSave()
     save.player.paths.hiragana = { level: 999, totalXp: 220 }

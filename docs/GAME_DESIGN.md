@@ -65,6 +65,8 @@ Track attempts, correct, incorrect, current streak and confidence separately per
 
 Each unlocked letter has weight `1 + 2 × (1 − mastery)`. The weakest letters are three times as likely as fully mastered letters. Exclude the immediately previous kana if another exists. Distribute spawns among three lanes, avoiding an occupied lane near the top. Later content families can extend `Kana` without moving matching into the UI.
 
+Random mode uses equal weights across all content, including locked and fully mastered items. It is an open practice mode and does not create a fourth XP path.
+
 ## Difficulty
 
 Coordinates use percentages of the responsive field. The initial speed is 3.8 percentage points/second (roughly 20 seconds before a miss). Each level adds 0.48. Time within a run adds up to 3 more points of pressure across 7.5 minutes. Speed caps at 17.

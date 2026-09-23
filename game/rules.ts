@@ -1,4 +1,4 @@
-import { kanaFor, type Kana, type KanjiPractice, type KanaScript } from '../data/kana.ts'
+import { kanaFor, type Kana, type KanjiPractice, type PracticeScript } from '../data/kana.ts'
 export interface Mastery {
   attempts: number
   correct: number
@@ -67,8 +67,8 @@ export function difficulty(level: number, seconds = 0) {
     groups: Math.min(10, Math.ceil(level / 2)),
   }
 }
-export const unlockedKana = (level: number, script: KanaScript = 'hiragana') =>
-  kanaFor(script).filter((k) => k.group < difficulty(level).groups)
+export const unlockedKana = (level: number, script: PracticeScript = 'hiragana') =>
+  script === 'random' ? kanaFor(script) : kanaFor(script).filter((k) => k.group < difficulty(level).groups)
 export function lessonFor(
   kana: Kana,
   mastery: Record<string, Mastery>,
@@ -103,10 +103,12 @@ export function chooseKana(
   previousId?: string,
   random = Math.random,
   kanjiPractice: KanjiPractice = 'meaning',
+  randomMode = false,
 ): Kana {
   const choices = pool.filter((k) => pool.length === 1 || k.id !== previousId)
   if (!choices.length) throw new Error('The character pool must not be empty')
   const weights = choices.map((k) => {
+    if (randomMode) return 1
     const score =
       k.type === 'kanji'
         ? mastery[`${k.id}:${kanjiPractice}`]?.masteryScore ?? 0

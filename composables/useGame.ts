@@ -8,6 +8,7 @@ export function useGame(
   getPool = () => hiragana.slice(0, 5),
   onImpact = () => {},
   getKanjiPractice: () => KanjiPractice = () => 'meaning',
+  getRandomMode: () => boolean = () => false,
 ) {
   const enemies = ref<Enemy[]>([]),
     input = ref(''),
@@ -60,7 +61,7 @@ export function useGame(
   function spawn(id?: string) {
     const kana =
       allKana.find((k) => k.id === id) ??
-      chooseKana(getPool(), mastery.value, previousId, Math.random, getKanjiPractice())
+      chooseKana(getPool(), mastery.value, previousId, Math.random, getKanjiPractice(), getRandomMode())
     const unseenSkill =
       kana.type === 'kanji' && !mastery.value[`${kana.id}:${getKanjiPractice()}`]?.attempts
     if (unseenSkill && !introducedThisRun.has(kana.id)) {

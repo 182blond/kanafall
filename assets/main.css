@@ -2559,3 +2559,16 @@ select {
     filter: drop-shadow(0 0 15px #d8b6ff);
   }
 }
+
+.script-picker {
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 700px) {
+  .script-picker button {
+    padding-inline: 8px;
+    font-size: 10px;
+  }
+}
