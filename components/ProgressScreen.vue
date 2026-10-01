@@ -8,12 +8,13 @@ import {
   type KanaScript,
 } from '../data/kana'
 import { emptyMastery, masteryLabel } from '../game/rules'
-import type { Save } from '../game/save'
+import type { PracticeMode, Save } from '../game/save'
 const props = defineProps<{ save: Save; accuracy: number; script: KanaScript }>()
-defineEmits<{ back: []; script: [script: KanaScript]; randomMode: [] }>()
+defineEmits<{ back: []; script: [script: KanaScript]; practiceMode: [mode: PracticeMode] }>()
 const kana = computed(() => kanaFor(props.script))
 const groups = computed(() => groupsFor(props.script))
 const path = computed(() => props.save.player.paths[props.script])
+const practiceMode = computed(() => props.save.settings.practiceModes[props.script])
 const selected = ref(kana.value[0]!)
 watch(
   () => props.script,
@@ -61,14 +62,18 @@ const itemsForGroup = (index: number) => kana.value.filter((item) => item.group 
         <span lang="ja">{{ item === 'hiragana' ? 'あ' : item === 'katakana' ? 'ア' : '山' }}</span>
         {{ item === 'hiragana' ? 'Hiragana' : item === 'katakana' ? 'Katakana' : 'Kanji' }}
       </button>
+    </div>
+    <div class="progress-mode-picker" role="group" aria-label="Modo de práctica">
       <button
-        class="random-collection-toggle"
-        :class="{ active: save.settings.randomMode }"
-        :aria-pressed="save.settings.randomMode"
-        @click="$emit('randomMode')"
+        v-for="mode in ['learning', 'random', 'custom'] as const"
+        :key="mode"
+        :class="{ active: practiceMode === mode }"
+        :aria-pressed="practiceMode === mode"
+        @click="$emit('practiceMode', mode)"
       >
-        <span aria-hidden="true">✦</span>
-        {{ save.settings.randomMode ? 'Random activo' : 'Random' }}
+        <span aria-hidden="true">{{ mode === 'learning' ? '道' : mode === 'random' ? '✦' : '組' }}</span>
+        {{ mode === 'learning' ? 'Ruta' : mode === 'random' ? 'Random' : 'Custom' }}
+        <small v-if="mode === 'custom'">{{ save.settings.customSelection[script].length }}</small>
       </button>
     </div>
     <div class="progress-stats">

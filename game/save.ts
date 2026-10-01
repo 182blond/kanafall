@@ -5,13 +5,15 @@ export const SAVE_BACKUP_KEY = 'kanafall.save.backup.v1'
 export const SAVE_TIME_KEY = 'kanafall.save.time.v1'
 export const SAVE_BACKUP_TIME_KEY = 'kanafall.save.backup-time.v1'
 export class UnsupportedSaveVersionError extends Error {}
+export type PracticeMode = 'learning' | 'random' | 'custom'
 export interface Settings {
   sound: boolean
   music: boolean
   reducedMotion: boolean
   speed: number
   script: KanaScript
-  randomMode: boolean
+  practiceModes: Record<KanaScript, PracticeMode>
+  customSelection: Record<KanaScript, string[]>
   kanjiPractice: KanjiPractice
 }
 export interface Save {
@@ -51,7 +53,8 @@ export function freshSave(): Save {
       reducedMotion: false,
       speed: 1,
       script: 'hiragana',
-      randomMode: false,
+      practiceModes: { hiragana: 'learning', katakana: 'learning', kanji: 'learning' },
+      customSelection: { hiragana: [], katakana: [], kanji: [] },
       kanjiPractice: 'meaning',
     },
   }
@@ -88,10 +91,26 @@ export function parseSave(raw: string | null): Save {
     save.statistics[key] = count(stats[key])
   for (const key of ['sound', 'music', 'reducedMotion'] as const)
     if (typeof settings[key] === 'boolean') save.settings[key] = settings[key]
+  let legacyRandom = false
   if (settings.script === 'hiragana' || settings.script === 'katakana' || settings.script === 'kanji')
     save.settings.script = settings.script
-  else if (settings.script === 'random') save.settings.randomMode = true
-  if (typeof settings.randomMode === 'boolean') save.settings.randomMode = settings.randomMode
+  else if (settings.script === 'random') legacyRandom = true
+  const practiceModes = record(settings.practiceModes)
+  for (const script of ['hiragana', 'katakana', 'kanji'] as const) {
+    const mode = practiceModes[script]
+    if (mode === 'learning' || mode === 'random' || mode === 'custom')
+      save.settings.practiceModes[script] = mode
+  }
+  if (legacyRandom || settings.randomMode === true)
+    save.settings.practiceModes[save.settings.script] = 'random'
+  const customSelection = record(settings.customSelection)
+  for (const script of ['hiragana', 'katakana', 'kanji'] as const) {
+    const allowed = new Set(allKana.filter((item) => item.type === script).map((item) => item.id))
+    const selected = Array.isArray(customSelection[script]) ? customSelection[script] : []
+    save.settings.customSelection[script] = [
+      ...new Set(selected.filter((id): id is string => typeof id === 'string' && allowed.has(id))),
+    ]
+  }
   if (settings.kanjiPractice === 'meaning' || settings.kanjiPractice === 'reading')
     save.settings.kanjiPractice = settings.kanjiPractice
   save.settings.speed =

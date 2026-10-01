@@ -27,7 +27,7 @@ Haru starts as a young kitsune samurai. Level 5 strengthens his aura and level 2
 
 ## Educational sequence
 
-Hiragana, katakana and kanji are selectable paths. They share the companion while keeping XP and levels separate. Each section has a Random practice mode that samples its full collection without unlock or mastery weighting; it does not create a fourth XP path. Old saves retain all kana progress and begin kanji at level 1.
+Hiragana, katakana and kanji are selectable paths. They share the companion while keeping XP and levels separate. Each section remembers one of three practice modes: Ruta uses unlocked content and mastery weighting, Random samples the full section uniformly, and Custom samples a saved exact selection uniformly. Custom can include locked or mastered items and never changes which progression path receives XP. Old saves retain all kana progress and migrate the previous Random flag into the section that was selected.
 
 The pool expands on levels 1, 3, 5, …, 19:
 
@@ -65,7 +65,7 @@ Track attempts, correct, incorrect, current streak and confidence separately per
 
 Each unlocked letter has weight `1 + 2 × (1 − mastery)`. The weakest letters are three times as likely as fully mastered letters. Exclude the immediately previous kana if another exists. Distribute spawns among three lanes, avoiding an occupied lane near the top. Later content families can extend `Kana` without moving matching into the UI.
 
-Random mode uses equal weights across the selected section, including locked and fully mastered items. It is an open practice mode and does not create a fourth XP path.
+Random mode uses equal weights across the selected section, including locked and fully mastered items. Custom mode uses the same equal weighting inside the player's exact saved subset. Neither mode creates another XP path or triggers automatic mastery advancement.
 
 When every item currently unlocked in a learning section reaches full mastery, the path advances through completed levels automatically until it reaches the next group with something new to learn. This prevents a mastered starter set from becoming an endless loop.
 

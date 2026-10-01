@@ -12,16 +12,39 @@ describe('versioned save boundary', () => {
   })
   it('persists random practice mode without creating a separate progression path', () => {
     const save = freshSave()
-    save.settings.randomMode = true
+    save.settings.practiceModes.hiragana = 'random'
     const parsed = parseSave(JSON.stringify(save))
     assert.equal(parsed.settings.script, 'hiragana')
-    assert.equal(parsed.settings.randomMode, true)
+    assert.equal(parsed.settings.practiceModes.hiragana, 'random')
     assert.deepEqual(Object.keys(parsed.player.paths), ['hiragana', 'katakana', 'kanji'])
   })
   it('migrates the previous global random setting to the selected default section', () => {
     const parsed = parseSave(JSON.stringify({ version: 3, settings: { script: 'random' } }))
     assert.equal(parsed.settings.script, 'hiragana')
-    assert.equal(parsed.settings.randomMode, true)
+    assert.equal(parsed.settings.practiceModes.hiragana, 'random')
+  })
+  it('migrates the previous random flag into only the selected section', () => {
+    const parsed = parseSave(
+      JSON.stringify({ version: 3, settings: { script: 'katakana', randomMode: true } }),
+    )
+    assert.equal(parsed.settings.practiceModes.hiragana, 'learning')
+    assert.equal(parsed.settings.practiceModes.katakana, 'random')
+    assert.equal(parsed.settings.practiceModes.kanji, 'learning')
+  })
+  it('keeps valid custom selections and removes duplicates or foreign IDs', () => {
+    const parsed = parseSave(
+      JSON.stringify({
+        version: 3,
+        settings: {
+          practiceModes: { hiragana: 'custom', katakana: 'learning', kanji: 'learning' },
+          customSelection: {
+            hiragana: ['hiragana-a', 'hiragana-a', 'katakana-a', 'missing'],
+          },
+        },
+      }),
+    )
+    assert.equal(parsed.settings.practiceModes.hiragana, 'custom')
+    assert.deepEqual(parsed.settings.customSelection.hiragana, ['hiragana-a'])
   })
   it('reconstructs level and unlocks instead of trusting inconsistent stored fields', () => {
     const save = freshSave()

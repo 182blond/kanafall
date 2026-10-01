@@ -22,11 +22,18 @@ export function useProgress() {
   let protectedSave = false
   let durableWrite = Promise.resolve()
   const player = computed(() => progression(save.value.player.paths[save.value.settings.script].totalXp))
-  const pool = computed(() =>
-    save.value.settings.randomMode
-      ? kanaFor(save.value.settings.script)
-      : unlockedKana(player.value.level, save.value.settings.script),
+  const practiceMode = computed(
+    () => save.value.settings.practiceModes[save.value.settings.script],
   )
+  const pool = computed(() => {
+    const script = save.value.settings.script
+    if (practiceMode.value === 'random') return kanaFor(script)
+    if (practiceMode.value === 'custom') {
+      const selected = new Set(save.value.settings.customSelection[script])
+      return kanaFor(script).filter((item) => selected.has(item.id))
+    }
+    return unlockedKana(player.value.level, script)
+  })
   const accuracy = computed(() => {
     const s = save.value.statistics
     return s.correct + s.incorrect ? Math.round((s.correct / (s.correct + s.incorrect)) * 100) : 0
@@ -83,7 +90,7 @@ export function useProgress() {
     persist()
   }
   function autoAdvanceIfMastered() {
-    if (save.value.settings.randomMode) return
+    if (practiceMode.value !== 'learning') return
     const path = save.value.player.paths[save.value.settings.script]
     const next = autoAdvanceProgress(
       path.level,
@@ -200,6 +207,7 @@ export function useProgress() {
     save,
     player,
     pool,
+    practiceMode,
     accuracy,
     ready,
     storageWarning,

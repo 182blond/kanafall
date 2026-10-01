@@ -31,12 +31,12 @@
 
 ## Automated checks
 
-- Random mode check: each section exposes its own Random toggle, bypasses unlocks and mastery weighting within that section, and keeps XP on the selected path.
+- Practice-mode check: each section remembers Ruta, Random or Custom independently; open modes bypass unlock and mastery weighting while keeping XP on the selected path.
 
 - `npm run build`: **passed**, official Nuxt 3 production build (120 client modules).
 - `npm run typecheck`: **passed**, strict Nuxt/Vue TypeScript checking.
 - `npm run lint`: **passed**, no lint errors or warnings.
-- `npm test`: **26 passed**, zero failures. Covers canonical kana, the 35-word kanji corpus, lesson-stage transitions, normalization, targeting, XP and level boundaries, arcade score/Ki/wave/heart milestones, mastery, unlocks, weighted and random selection, automatic mastery advancement, redundant-save recovery, save round-trip, malformed data and version 1/2 migrations.
+- `npm test`: **28 passed**, zero failures. Covers canonical kana, the 35-word kanji corpus, lesson-stage transitions, normalization, targeting, XP and level boundaries, arcade score/Ki/wave/heart milestones, mastery, unlocks, weighted and random selection, custom-selection sanitization, legacy Random migration, automatic mastery advancement, redundant-save recovery, save round-trip, malformed data and version 1/2 migrations.
 
 ## Browser checks
 
@@ -63,6 +63,8 @@ Verified again on the final production build:
 - Arcade check: eight consecutive correct kanji answers filled Ki and activated the eight-second Samurai Rush. The HUD switched to `FURIA ×2`, score doubled on Rush answers, Haru gained a violet aura and the game continued accepting input during the effect.
 - Mobile layout check at 390 × 844: no horizontal overflow, the primary action and both navigation controls remain visible, and focused-input mode keeps lives, pause, the falling target, prompt and full typing row inside the viewport.
 - Browser console check after menu, play, correct-answer and Rush states: no errors or warnings.
+- Custom-mode check: selected only `あ`, `う` and `き`, saved the combination, played nine consecutive targets and confirmed every target belonged to that exact subset. Reload restored Custom mode and its three selections; switching to Katakana retained that section's independent Ruta mode.
+- Custom mobile check: the editor has no horizontal overflow, keeps its header, presets and save controls fixed, and scrolls only the 46-item selection area.
 
 Audio synthesis paths ran without browser errors, but subjective sound quality was not independently listened to. The destructive reset confirmation was inspected in source and its save defaults tested; no pre-existing user save was deleted during browser testing. The delivered browser starts at level 1 with one test answer (10 XP).
 

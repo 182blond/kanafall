@@ -3,16 +3,16 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useGame } from './composables/useGame'
 import { useProgress } from './composables/useProgress'
 import { useAudio } from './composables/useAudio'
-import { allKana, groupsFor, scriptJapanese, type KanaScript } from './data/kana'
-import { xpToNextLevel } from './game/rules'
+import { allKana, groupsFor, kanaFor, scriptJapanese, type KanaScript } from './data/kana'
+import { unlockedKana, xpToNextLevel } from './game/rules'
 import { trackGameEvent } from './game/events'
-import type { Settings } from './game/save'
+import type { PracticeMode, Settings } from './game/save'
 import Spirit from './components/Spirit.vue'
 import GameArena from './components/GameArena.vue'
 import ProgressScreen from './components/ProgressScreen.vue'
 import SettingsScreen from './components/SettingsScreen.vue'
 const progress = useProgress()
-const { save, player, pool, accuracy, ready, storageWarning, saveMessage, lastSavedAt } = progress
+const { save, player, pool, practiceMode, accuracy, ready, storageWarning, saveMessage, lastSavedAt } = progress
 const audio = useAudio(() => save.value.settings)
 const game = useGame(
   (id, combo, xp) => {
@@ -28,14 +28,16 @@ const game = useGame(
   () => pool.value,
   () => audio.play('impact'),
   () => save.value.settings.kanjiPractice,
-  () => save.value.settings.randomMode,
+  () => practiceMode.value !== 'learning',
 )
 const { status, score, runBest, runXp, runCorrect, runIncorrect, rushActive } = game
 const page = ref<'game' | 'progress' | 'settings'>('game'),
   resetRequested = ref(false),
   levelNotice = ref(''),
   debugOpen = ref(false),
-  debugKana = ref(allKana[0]!.id)
+  debugKana = ref(allKana[0]!.id),
+  customEditorOpen = ref(false),
+  customDraft = ref<string[]>([])
 const arena = ref<InstanceType<typeof GameArena>>()
 const isDev = import.meta.dev
 let noticeTimer: ReturnType<typeof setTimeout> | undefined
@@ -44,6 +46,22 @@ const syncVisibleViewport = () => {
   document.documentElement.style.setProperty('--visible-height', `${viewport?.height ?? window.innerHeight}px`)
 }
 const groups = computed(() => groupsFor(save.value.settings.script))
+const customItems = computed(() => kanaFor(save.value.settings.script))
+const customGroups = computed(() =>
+  groups.value.map((group, index) => ({
+    name: group[0],
+    items: customItems.value.filter((item) => item.group === index),
+  })),
+)
+const customDraftSet = computed(() => new Set(customDraft.value))
+const customCount = computed(
+  () => save.value.settings.customSelection[save.value.settings.script].length,
+)
+const customPreview = computed(() => {
+  const selected = new Set(save.value.settings.customSelection[save.value.settings.script])
+  const glyphs = customItems.value.filter((item) => selected.has(item.id)).slice(0, 8)
+  return glyphs.map((item) => item.character).join(' · ')
+})
 const currentGroup = computed(() =>
   groups.value[Math.min(groups.value.length - 1, Math.ceil(player.value.level / 2) - 1)]!,
 )
@@ -112,6 +130,10 @@ watch(rushActive, (active) => {
   trackGameEvent('samurai_rush', { level: player.value.level })
 })
 async function start() {
+  if (!pool.value.length) {
+    openCustomEditor()
+    return
+  }
   audio.unlock()
   levelNotice.value = ''
   page.value = 'game'
@@ -158,8 +180,62 @@ function selectScript(script: KanaScript) {
   save.value.settings.script = script
   debugKana.value = allKana.find((kana) => kana.type === script)!.id
 }
-function toggleRandomMode() {
-  save.value.settings.randomMode = !save.value.settings.randomMode
+function selectPracticeMode(mode: PracticeMode) {
+  if (mode === 'custom') {
+    openCustomEditor()
+    return
+  }
+  save.value.settings.practiceModes[save.value.settings.script] = mode
+}
+function selectPracticeModeFromProgress(mode: PracticeMode) {
+  if (mode !== 'custom') {
+    selectPracticeMode(mode)
+    return
+  }
+  toMenu()
+  nextTick(openCustomEditor)
+}
+function openCustomEditor() {
+  customDraft.value = [...save.value.settings.customSelection[save.value.settings.script]]
+  customEditorOpen.value = true
+  nextTick(() => document.querySelector<HTMLButtonElement>('.custom-close')?.focus())
+}
+function closeCustomEditor() {
+  customEditorOpen.value = false
+  nextTick(() => document.querySelector<HTMLButtonElement>('.practice-mode-custom')?.focus())
+}
+function orderCustomSelection(ids: Iterable<string>) {
+  const selected = new Set(ids)
+  customDraft.value = customItems.value.filter((item) => selected.has(item.id)).map((item) => item.id)
+}
+function toggleCustomItem(id: string) {
+  const selected = new Set(customDraft.value)
+  if (selected.has(id)) selected.delete(id)
+  else selected.add(id)
+  orderCustomSelection(selected)
+}
+function toggleCustomGroup(ids: string[]) {
+  const selected = new Set(customDraft.value)
+  const remove = ids.every((id) => selected.has(id))
+  for (const id of ids) {
+    if (remove) selected.delete(id)
+    else selected.add(id)
+  }
+  orderCustomSelection(selected)
+}
+function setCustomPreset(preset: 'unlocked' | 'all' | 'clear') {
+  if (preset === 'clear') customDraft.value = []
+  else if (preset === 'all') customDraft.value = customItems.value.map((item) => item.id)
+  else
+    customDraft.value = unlockedKana(player.value.level, save.value.settings.script).map(
+      (item) => item.id,
+    )
+}
+function saveCustomSelection() {
+  if (!customDraft.value.length) return
+  save.value.settings.customSelection[save.value.settings.script] = [...customDraft.value]
+  save.value.settings.practiceModes[save.value.settings.script] = 'custom'
+  customEditorOpen.value = false
 }
 function selectKanjiPractice(practice: 'meaning' | 'reading') {
   save.value.settings.kanjiPractice = practice
@@ -172,6 +248,10 @@ function keyboard(event: KeyboardEvent) {
   if (event.isComposing) return
   if (event.key === 'Escape') {
     event.preventDefault()
+    if (customEditorOpen.value) {
+      closeCustomEditor()
+      return
+    }
     if (debugOpen.value) {
       debugOpen.value = false
       return
@@ -258,7 +338,7 @@ onUnmounted(() => {
           :required="player.required"
           :level-notice="levelNotice"
           :reduced-motion="save.settings.reducedMotion"
-          :hints="save.settings.script !== 'kanji' && !save.settings.randomMode && pool.reduce((total, kana) => total + (save.mastery[kana.id]?.correct ?? 0), 0) < 6"
+          :hints="save.settings.script !== 'kanji' && practiceMode === 'learning' && pool.reduce((total, kana) => total + (save.mastery[kana.id]?.correct ?? 0), 0) < 6"
           :script="save.settings.script"
           :kanji-practice="save.settings.kanjiPractice"
         />
@@ -284,11 +364,40 @@ onUnmounted(() => {
                 {{ script === 'hiragana' ? 'Hiragana' : script === 'katakana' ? 'Katakana' : 'Kanji' }}
               </button>
             </div>
-            <button class="random-mode-toggle" :class="{ active: save.settings.randomMode }" :aria-pressed="save.settings.randomMode" @click="toggleRandomMode">
-              <span aria-hidden="true">✦</span>
-              {{ save.settings.randomMode ? 'Random activo' : 'Activar Random' }}
-              <small>{{ save.settings.randomMode ? 'Puede salir cualquier contenido de esta sección' : 'Repaso libre de esta sección' }}</small>
-            </button>
+            <div class="practice-mode-picker" role="group" aria-label="Modo de práctica">
+              <button
+                v-for="mode in ['learning', 'random', 'custom'] as const"
+                :key="mode"
+                :class="[
+                  { active: practiceMode === mode },
+                  mode === 'custom' ? 'practice-mode-custom' : '',
+                ]"
+                :aria-pressed="practiceMode === mode"
+                @click="selectPracticeMode(mode)"
+              >
+                <span aria-hidden="true">{{ mode === 'learning' ? '道' : mode === 'random' ? '✦' : '組' }}</span>
+                {{ mode === 'learning' ? 'Ruta' : mode === 'random' ? 'Random' : 'Custom' }}
+                <small>
+                  {{
+                    mode === 'learning'
+                      ? 'Tu nivel'
+                      : mode === 'random'
+                        ? 'Todo'
+                        : customCount
+                          ? `${customCount} elegidos`
+                          : 'Elegí letras'
+                  }}
+                </small>
+              </button>
+            </div>
+            <p class="practice-mode-note">
+              <template v-if="practiceMode === 'learning'">Avanza por tu recorrido y prioriza lo que falta aprender.</template>
+              <template v-else-if="practiceMode === 'random'">Mezcla toda esta sección con la misma frecuencia.</template>
+              <template v-else>
+                Sólo aparece tu combinación de {{ customCount }} {{ save.settings.script === 'kanji' ? 'palabras' : 'letras' }}.
+                <button @click="openCustomEditor">Editar</button>
+              </template>
+            </p>
             <h1>
               Kanafall
               <span>かなの道</span>
@@ -312,10 +421,15 @@ onUnmounted(() => {
                 </button>
               </div>
             </div>
-            <p v-if="save.settings.randomMode" class="menu-subtitle random-subtitle">
+            <p v-if="practiceMode === 'random'" class="menu-subtitle random-subtitle">
               {{ save.settings.script === 'kanji' ? 'Todas las palabras de kanji.' : `Todo ${save.settings.script} mezclado.` }}
               <br />
               Puede aparecer cualquier contenido.
+            </p>
+            <p v-else-if="practiceMode === 'custom'" class="menu-subtitle custom-subtitle">
+              Tu combinación
+              <br />
+              <span lang="ja">{{ customPreview }}</span>
             </p>
             <p v-else-if="save.settings.script !== 'kanji'" class="menu-subtitle">
               Un pequeño samurái.
@@ -331,14 +445,18 @@ onUnmounted(() => {
                 TU GUARDIÁN
               </span>
             </div>
-            <button class="primary" :disabled="!ready" @click="start">
+            <button class="primary" :disabled="!ready || (practiceMode === 'custom' && !customCount)" @click="start">
               {{
-                save.settings.randomMode
+                practiceMode === 'random'
                   ? save.settings.script === 'kanji'
                     ? save.settings.kanjiPractice === 'meaning'
                       ? 'Significados al azar'
                       : 'Lecturas al azar'
                     : 'Practicar al azar'
+                  : practiceMode === 'custom'
+                    ? customCount
+                      ? `Practicar ${customCount} ${save.settings.script === 'kanji' ? 'palabras' : 'letras'}`
+                      : 'Elegí tu combinación'
                   : save.settings.script === 'kanji'
                   ? save.settings.kanjiPractice === 'meaning'
                     ? 'Practicar significados'
@@ -356,12 +474,14 @@ onUnmounted(() => {
             </nav>
             <p class="how-to">
               {{
-                save.settings.randomMode
+                practiceMode === 'random'
                   ? save.settings.script === 'kanji'
                     ? save.settings.kanjiPractice === 'meaning'
                       ? 'Puede aparecer cualquier palabra; respondé el significado en español.'
                       : 'Puede aparecer cualquier palabra; escribí su lectura en romaji.'
                     : `Puede aparecer cualquier contenido de ${save.settings.script}.`
+                  : practiceMode === 'custom'
+                    ? `Sólo practicarás los ${customCount} elementos que elegiste.`
                   : save.settings.script === 'kanji'
                   ? save.settings.kanjiPractice === 'meaning'
                     ? 'Mirá el kanji y respondé qué significa en español.'
@@ -372,6 +492,66 @@ onUnmounted(() => {
             </p>
             <p class="arcade-hook"><span>⚔</span> Encadená aciertos, cargá Ki y activá Furia ×2.</p>
             <button class="reset-link" @click="openPage('settings', true)">Restablecer guardado</button>
+          </div>
+          <div v-if="customEditorOpen" class="custom-builder-backdrop">
+            <section
+              class="custom-builder-card"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="custom-builder-title"
+            >
+              <header>
+                <div>
+                  <p class="eyebrow">PRÁCTICA A TU MEDIDA</p>
+                  <h2 id="custom-builder-title">Armá tu combinación</h2>
+                  <p>
+                    {{ scriptJapanese(save.settings.script) }} · Elegí una o varias
+                    {{ save.settings.script === 'kanji' ? 'palabras' : 'letras' }}.
+                  </p>
+                </div>
+                <button class="custom-close" aria-label="Cerrar sin guardar" @click="closeCustomEditor">×</button>
+              </header>
+              <div class="custom-presets" aria-label="Selección rápida">
+                <button @click="setCustomPreset('unlocked')">Mi nivel</button>
+                <button @click="setCustomPreset('all')">Todas</button>
+                <button @click="setCustomPreset('clear')">Limpiar</button>
+              </div>
+              <div class="custom-groups">
+                <section v-for="group in customGroups" :key="group.name" class="custom-group">
+                  <button
+                    class="custom-group-heading"
+                    @click="toggleCustomGroup(group.items.map((item) => item.id))"
+                  >
+                    <span>{{ group.name }}</span>
+                    <small>
+                      {{ group.items.filter((item) => customDraftSet.has(item.id)).length }} / {{ group.items.length }}
+                    </small>
+                  </button>
+                  <div class="custom-grid" :class="{ 'custom-word-grid': save.settings.script === 'kanji' }">
+                    <button
+                      v-for="item in group.items"
+                      :key="item.id"
+                      :class="{ selected: customDraftSet.has(item.id) }"
+                      :aria-pressed="customDraftSet.has(item.id)"
+                      :aria-label="item.type === 'kanji' ? `${item.character}, ${item.reading}, ${item.meaning}` : `${item.character}, ${item.romaji[0]}`"
+                      @click="toggleCustomItem(item.id)"
+                    >
+                      <span lang="ja">{{ item.character }}</span>
+                      <small lang="ja">{{ item.type === 'kanji' ? item.reading : item.romaji[0] }}</small>
+                    </button>
+                  </div>
+                </section>
+              </div>
+              <footer>
+                <p><b>{{ customDraft.length }}</b> seleccionados · Podés incluir contenido bloqueado.</p>
+                <div>
+                  <button @click="closeCustomEditor">Cancelar</button>
+                  <button class="primary" :disabled="!customDraft.length" @click="saveCustomSelection">
+                    Guardar combinación
+                  </button>
+                </div>
+              </footer>
+            </section>
           </div>
         </div>
         <div v-else-if="status === 'paused' || status === 'over'" class="overlay">
@@ -441,7 +621,7 @@ onUnmounted(() => {
       :script="save.settings.script"
       @back="back"
       @script="selectScript"
-      @random-mode="toggleRandomMode"
+      @practice-mode="selectPracticeModeFromProgress"
     />
     <SettingsScreen
       v-else
