@@ -8,10 +8,14 @@ import {
   emptyMastery,
   findTarget,
   lessonFor,
+  kiForAnswer,
   matches,
   progression,
+  scoreForAnswer,
+  shouldRecoverHeart,
   unlockedKana,
   updateMastery,
+  waveForCorrect,
   xpForAnswer,
   xpToNextLevel,
   type Enemy,
@@ -121,6 +125,24 @@ describe('Japanese content and matching', () => {
     }, 'reading')
     assert.equal(independent.hint, undefined)
     assert.ok(matches({ ...word, romaji: ['volcan'] }, ' volcán '))
+  })
+})
+describe('arcade rewards', () => {
+  it('turns streaks into readable score, ki and wave milestones', () => {
+    assert.equal(scoreForAnswer(1), 110)
+    assert.equal(scoreForAnswer(8, true), 360)
+    assert.equal(scoreForAnswer(99), 400)
+    assert.equal(kiForAnswer(1), 12)
+    assert.equal(kiForAnswer(12), 20)
+    assert.equal(kiForAnswer(99), 20)
+    assert.equal(waveForCorrect(0), 1)
+    assert.equal(waveForCorrect(10), 2)
+  })
+  it('recovers a heart only on twelve-answer guard milestones', () => {
+    assert.equal(shouldRecoverHeart(0), false)
+    assert.equal(shouldRecoverHeart(11), false)
+    assert.equal(shouldRecoverHeart(12), true)
+    assert.equal(shouldRecoverHeart(24), true)
   })
 })
 describe('progression and mastery', () => {

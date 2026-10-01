@@ -63,8 +63,8 @@ function cancelImport() {
     <div class="settings-list">
       <div
         v-for="item in [
-          ['sound', 'Efectos de sonido', 'Pequeñas notas para cada hechizo.'],
-          ['music', 'Música del bosque', 'Una melodía suave para acompañarte.'],
+          ['sound', 'Efectos de sonido', 'Notas breves para cortes, aciertos y alertas.'],
+          ['music', 'Música del dojo', 'Una melodía suave para acompañarte.'],
           ['reducedMotion', 'Reducir movimiento', 'Menos partículas, destellos y animaciones.'],
         ] as const"
         :key="item[0]"

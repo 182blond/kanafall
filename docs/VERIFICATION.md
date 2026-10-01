@@ -36,7 +36,7 @@
 - `npm run build`: **passed**, official Nuxt 3 production build (120 client modules).
 - `npm run typecheck`: **passed**, strict Nuxt/Vue TypeScript checking.
 - `npm run lint`: **passed**, no lint errors or warnings.
-- `npm test`: **24 passed**, zero failures. Covers canonical kana, the 35-word kanji corpus, lesson-stage transitions, normalization, targeting, XP and level boundaries, mastery, unlocks, weighted and random selection, automatic mastery advancement, redundant-save recovery, save round-trip, malformed data and version 1/2 migrations.
+- `npm test`: **26 passed**, zero failures. Covers canonical kana, the 35-word kanji corpus, lesson-stage transitions, normalization, targeting, XP and level boundaries, arcade score/Ki/wave/heart milestones, mastery, unlocks, weighted and random selection, automatic mastery advancement, redundant-save recovery, save round-trip, malformed data and version 1/2 migrations.
 
 ## Browser checks
 
@@ -60,6 +60,9 @@ Verified again on the final production build:
 - Backquote does not reveal any development panel.
 - No browser error/warning logs in the checked production session.
 - Visual inspection at default desktop size and 960 × 768: character, HUD and input remain readable and reachable.
+- Arcade check: eight consecutive correct kanji answers filled Ki and activated the eight-second Samurai Rush. The HUD switched to `FURIA ×2`, score doubled on Rush answers, Haru gained a violet aura and the game continued accepting input during the effect.
+- Mobile layout check at 390 × 844: no horizontal overflow, the primary action and both navigation controls remain visible, and focused-input mode keeps lives, pause, the falling target, prompt and full typing row inside the viewport.
+- Browser console check after menu, play, correct-answer and Rush states: no errors or warnings.
 
 Audio synthesis paths ran without browser errors, but subjective sound quality was not independently listened to. The destructive reset confirmation was inspected in source and its save defaults tested; no pre-existing user save was deleted during browser testing. The delivered browser starts at level 1 with one test answer (10 XP).
 

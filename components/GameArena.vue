@@ -14,11 +14,27 @@ const props = defineProps<{
   script: PracticeScript
   kanjiPractice: KanjiPractice
 }>()
-const { enemies, input, score, combo, hp, status, heroState, feedback, wrongCount, lessonIntro } = props.game
+const {
+  enemies,
+  input,
+  score,
+  combo,
+  hp,
+  status,
+  heroState,
+  feedback,
+  wrongCount,
+  lessonIntro,
+  rushActive,
+  rushProgress,
+  wave,
+  arcadeNotice,
+} = props.game
 const currentTarget = computed(() =>
   [...enemies.value].filter((enemy) => enemy.state === 'falling').sort((a, b) => b.y - a.y)[0],
 )
 const introParts = computed(() => (lessonIntro.value ? kanjiPartsFor(lessonIntro.value) : []))
+const danger = computed(() => enemies.value.some((enemy) => enemy.state === 'falling' && enemy.y > 70))
 const prompt = computed(() => {
   if (lessonIntro.value) return 'PRÓXIMO PASO · Vas a responder el significado en español.'
   const target = currentTarget.value
@@ -82,7 +98,11 @@ async function continueLesson() {
 }
 </script>
 <template>
-  <div class="battle-surface" :class="{ 'is-paused': status === 'paused' }" :inert="status !== 'playing'">
+  <div
+    class="battle-surface"
+    :class="{ 'is-paused': status === 'paused', 'rush-active': rushActive, 'has-danger': danger }"
+    :inert="status !== 'playing'"
+  >
     <div class="hud">
       <span class="score-stat">
         PUNTOS
@@ -100,6 +120,10 @@ async function continueLesson() {
         RACHA
         <b :key="combo" :class="{ 'combo-pop': combo > 1 }">×{{ combo }}</b>
       </span>
+      <div class="ki-stat" :class="{ charged: rushActive }" aria-label="Energía de Ki">
+        <span>{{ rushActive ? 'FURIA' : 'KI' }} <b>{{ rushActive ? '×2' : `${Math.round(rushProgress)}%` }}</b></span>
+        <div class="ki-line"><i :style="{ width: `${rushProgress}%` }"></i></div>
+      </div>
       <span class="hearts" :aria-label="`${hp} de 5 vidas`">
         <span v-for="n in 5" :key="n" :class="{ empty: n > hp }">♥</span>
       </span>
@@ -110,9 +134,10 @@ async function continueLesson() {
     </div>
     <div class="playfield" @pointerdown="focus">
       <div class="field-caption">
-        <span>CLARO DEL BOSQUE</span>
-        <span>{{ scriptLabel(script) }} · Nivel {{ level }}</span>
+        <span>DOJO DEL CREPÚSCULO</span>
+        <span>{{ scriptLabel(script) }} · Oleada {{ wave }}</span>
       </div>
+      <div v-if="arcadeNotice" class="arcade-notice" role="status">{{ arcadeNotice }}</div>
       <div v-if="lessonIntro" class="lesson-intro" role="dialog" aria-modal="true" aria-labelledby="new-word-title">
         <p class="eyebrow">NUEVA PALABRA · MIRÁ ANTES DE JUGAR</p>
         <div class="lesson-glyph" lang="ja">{{ lessonIntro.kanji }}</div>
@@ -141,6 +166,7 @@ async function continueLesson() {
       <svg class="projectiles" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <g v-for="e in enemies.filter((e) => e.state === 'targeted')" :key="e.id">
           <line
+            class="slash-trail"
             x1="52"
             y1="86"
             :x2="52 + (e.x - 52) * Math.min(1, e.effectAge / 0.18)"
@@ -187,8 +213,8 @@ async function continueLesson() {
       </div>
       <Spirit :state="heroState" :level="level" class="player" />
       <span class="hero-name">
-        NILO
-        <span>✧</span>
+        HARU
+        <span>⚔</span>
       </span>
     </div>
     <form class="input-dock" :class="{ 'input-error': error }" @submit.prevent="submit">

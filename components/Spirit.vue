@@ -1,14 +1,14 @@
 <script setup lang="ts">
 withDefaults(defineProps<{ state?: string; level?: number }>(), { state: 'idle', level: 1 })
 
-const companionSrc = `${useRuntimeConfig().app.baseURL}companion.png`
+const companionSrc = `${useRuntimeConfig().app.baseURL}haru-samurai.png`
 </script>
 <template>
   <div
     class="spirit"
     :class="[state, { evolved: level >= 5, radiant: level >= 20 }]"
     role="img"
-    aria-label="Nilo, tu espíritu del bosque"
+    aria-label="Haru, tu aprendiz samurái kitsune"
   >
     <div class="spirit-aura"></div>
     <div class="spirit-shadow" aria-hidden="true"></div>

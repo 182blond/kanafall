@@ -10,7 +10,7 @@ export default defineNuxtConfig({
   app: {
     baseURL,
     head: {
-      title: 'Kanafall · El bosque de las letras',
+      title: 'Kanafall · El dojo de las letras',
       htmlAttrs: { lang: 'es' },
       meta: [
         {
@@ -19,7 +19,7 @@ export default defineNuxtConfig({
         },
         {
           name: 'description',
-          content: 'Un pequeño espíritu, hiragana, katakana y una aventura que empieza con tu teclado.',
+          content: 'Un samurái kitsune, hiragana, katakana y una aventura arcade que empieza con tu teclado.',
         },
       ],
       link: [{ rel: 'icon', type: 'image/svg+xml', href: `${baseURL}favicon.svg` }],

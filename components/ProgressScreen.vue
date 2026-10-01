@@ -96,7 +96,7 @@ const itemsForGroup = (index: number) => kana.value.filter((item) => item.group 
     <div class="collection-layout">
       <div>
         <div class="section-title">
-          <h2>{{ script === 'kanji' ? 'Tu bosque de palabras' : `Tu colección de ${script}` }}</h2>
+          <h2>{{ script === 'kanji' ? 'Tu colección de palabras' : `Tu colección de ${script}` }}</h2>
           <span>{{ kana.filter((k) => unlocked(k.id)).length }} / {{ kana.length }} desbloqueados</span>
         </div>
         <div class="kana-rows">

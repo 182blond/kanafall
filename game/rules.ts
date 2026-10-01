@@ -38,6 +38,13 @@ export const matches = (target: Kana | Enemy, answer: string) => {
 }
 export const xpForAnswer = (combo: number, itemStreak = 1) =>
   10 + Math.min(10, Math.floor(combo / 5)) + Math.min(8, Math.max(0, itemStreak - 1) * 2)
+export const KI_MAX = 100
+export const RUSH_DURATION = 8
+export const scoreForAnswer = (combo: number, rushActive = false) =>
+  (100 + Math.min(combo, 30) * 10) * (rushActive ? 2 : 1)
+export const kiForAnswer = (combo: number) => 12 + Math.min(8, Math.floor(combo / 3) * 2)
+export const waveForCorrect = (correct: number) => Math.floor(Math.max(0, correct) / 10) + 1
+export const shouldRecoverHeart = (combo: number) => combo > 0 && combo % 12 === 0
 export const xpToNextLevel = (level: number) => Math.round(60 * Math.max(1, level) ** 1.4)
 export function progression(totalXp: number) {
   let level = 1,

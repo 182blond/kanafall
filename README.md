@@ -2,7 +2,7 @@
 
 **Web:** https://182blond.github.io/kanafall/
 
-A cozy Japanese typing game: protect Nilo, a little forest companion, while learning hiragana, katakana and an introductory path of 20 kanji through 35 words. Each section has a Random mode for open practice. Spanish interface, illustrated companion, synthesized audio, no accounts or external services.
+A Japanese arcade typing game: train with Haru, a young kitsune samurai, while learning hiragana, katakana and an introductory path of 20 kanji through 35 words. Build streaks, charge Ki and trigger Samurai Rush for a temporary score multiplier. Each section has a Random mode for open practice. Spanish interface, original illustrated companion, synthesized audio, no accounts or external services.
 
 ## Start
 
@@ -33,7 +33,7 @@ Tests use Node's built-in test runner with TypeScript stripping and no subproces
 
 - Choose **Hiragana** or **Katakana**, click **Jugar**, type the Hepburn reading, then press **Enter**. Case and surrounding spaces are ignored.
 - Activate **Random** inside Hiragana, Katakana or Kanji to practice any item from that section, including locked and fully mastered items. Random selection ignores mastery weighting; it is an open practice mode rather than a progression path.
-- Choose **Kanji** to enter **Bosque de palabras**, then choose a complete **Significados** session in Spanish or a **Lecturas** session in romaji. Before a new word can fall, a paused discovery card teaches its kanji, hiragana, romaji and Spanish meaning.
+- Choose **Kanji** to open your word collection, then choose a complete **Significados** session in Spanish or a **Lecturas** session in romaji. Before a new word can fall, a paused discovery card teaches its kanji, hiragana, romaji and Spanish meaning.
 - Meaning sessions show the kanji with a small hiragana reading and ask “¿Qué significa esta palabra?”. Reading sessions hide that aid so they do not reveal the answer. Every exercise keeps the same answer language for the whole run. Meaning and reading have independent mastery; accents are optional, common regional synonyms are accepted, and difficult words return more often.
 - The first six successful answers show a reading hint. Later, a wrong answer reveals the most dangerous letter's reading and selects the text for an easy retry.
 - **Esc** pauses/resumes. Leaving the tab pauses automatically. The five hearts reset each run; progress does not.

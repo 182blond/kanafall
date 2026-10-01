@@ -2,7 +2,7 @@
 
 ## Core loop
 
-Read a falling learning item → type the requested meaning or Hepburn reading → press Enter → Nilo casts a spell → gain XP and build a streak. The selected enemy is locked, input cleared and rewards credited in the same event handler. Its spell flies for 180 ms, then the hit disperses within 800 ms. Input never waits for this animation. Next spawn can begin after 450 ms; kanji mode always keeps one answerable word on screen so meaning and reading prompts cannot conflict.
+Read a falling learning item → type the requested meaning or Hepburn reading → press Enter → Haru cuts it with a light slash → gain XP, Ki and build a streak. The selected enemy is locked, input cleared and rewards credited in the same event handler. Its slash flies for 180 ms, then the hit disperses within 800 ms. Input never waits for this animation. Next spawn can begin after 450 ms; kanji mode always keeps one answerable word on screen so meaning and reading prompts cannot conflict.
 
 Every entity has an ID, kana content, normalized position, fall speed, simulation spawn time, state and effect age. States: falling → targeted → hit → destroyed, or falling → missed → destroyed. When readings match several letters, the lowest wins; ties use spawn time then ID. A targeted enemy cannot be scored twice or cost a life. Animation timing freezes with gameplay on pause.
 
@@ -11,7 +11,7 @@ Every entity has an ID, kana content, normalized position, fall speed, simulatio
 - Five lives per run. A letter reaching 83% of the field removes one life, breaks the streak, reveals its reading and counts as an incorrect attempt. Zero lives ends the run immediately.
 - A wrong non-empty submission breaks the streak and selects the input for replacement. It costs no life. An empty submission or a submission between available enemies is ignored.
 - With no matching reading, the lowest falling letter receives the incorrect mastery attempt. This is a deliberate, deterministic attribution rule, not a guess about intent.
-- Each correct answer scores `100 + 10 × min(combo, 30)` points. Run score resets on restart; lifetime XP, best streak and best score persist.
+- Each correct answer scores `100 + 10 × min(combo, 30)` points. Correct answers also charge Ki; a full meter starts eight seconds of Samurai Rush, slows falling items to 76% speed and doubles score. Accurate answers extend Rush slightly. Every ten correct answers begins a new visible wave, and every twelve-answer streak restores one missing life. Wrong answers and misses reduce uncharged Ki without taking earned XP away.
 - Correct, attack, impact, wrong, level and game-over sounds are synthesized through Web Audio; music is an original quiet eight-note pattern. Sound is optional and music defaults off.
 - Reduced motion removes idle/cast/shake/particle animations and flying spell visuals; falling letters continue because their movement is the game mechanic. Impact state and XP feedback remain.
 
@@ -23,7 +23,7 @@ The item streak counts consecutive correct answers for that exact kana or kanji 
 
 `XP required(level) = round(60 × level^1.4)`; this is per-level XP, with surplus carried over. Level 2 takes six accurate early answers. XP is credited and saved immediately, even if the session ends before the visual impact.
 
-Nilo starts as a young forest companion. Level 5 adds a green aura; level 10 enriches the leaf glow; level 20 adds a violet radiance. Level-up notices never disable input.
+Haru starts as a young kitsune samurai. Level 5 strengthens his aura and level 20 adds a violet radiance. Level-up notices never disable input.
 
 ## Educational sequence
 

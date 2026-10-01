@@ -1,5 +1,18 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { chooseKana, difficulty, findTarget, lessonFor, xpForAnswer, type Enemy } from '../game/rules'
+import {
+  KI_MAX,
+  RUSH_DURATION,
+  chooseKana,
+  difficulty,
+  findTarget,
+  kiForAnswer,
+  lessonFor,
+  scoreForAnswer,
+  shouldRecoverHeart,
+  waveForCorrect,
+  xpForAnswer,
+  type Enemy,
+} from '../game/rules'
 import { allKana, hiragana, type Kana, type KanjiPractice } from '../data/kana'
 export function useGame(
   onCorrect: (id: string, combo: number, xp: number) => void = () => {},
@@ -23,6 +36,9 @@ export function useGame(
   const speed = ref(1),
     mastery = ref<Parameters<typeof chooseKana>[1]>({}),
     lessonIntro = ref<Kana>(),
+    ki = ref(0),
+    rushRemaining = ref(0),
+    arcadeNotice = ref(''),
     runBest = ref(0),
     runXp = ref(0),
     runCorrect = ref(0),
@@ -32,9 +48,19 @@ export function useGame(
     last = 0,
     frame = 0,
     heroTimer = 0,
+    noticeTimer = 0,
     previousId: string | undefined
   const introducedThisRun = new Set<string>()
   const active = computed(() => enemies.value.filter((e) => e.state === 'falling'))
+  const rushActive = computed(() => rushRemaining.value > 0)
+  const rushProgress = computed(() =>
+    rushActive.value ? (rushRemaining.value / RUSH_DURATION) * KI_MAX : ki.value,
+  )
+  const wave = computed(() => waveForCorrect(runCorrect.value))
+  function announce(message: string, seconds = 1.8) {
+    arcadeNotice.value = message
+    noticeTimer = seconds
+  }
   function animateHero(state: string) {
     heroState.value = state
     heroTimer = 0.5
@@ -88,6 +114,10 @@ export function useGame(
     runXp.value = 0
     runCorrect.value = 0
     runIncorrect.value = 0
+    ki.value = 0
+    rushRemaining.value = 0
+    arcadeNotice.value = ''
+    noticeTimer = 0
     elapsed.value = 0
     feedback.value = ''
     lessonIntro.value = undefined
@@ -101,6 +131,8 @@ export function useGame(
     if (status.value !== 'playing' || !input.value.trim() || !active.value.length) return
     const target = findTarget(enemies.value, input.value)
     if (target) {
+      const waveBefore = wave.value
+      const scoringInRush = rushActive.value
       target.state = 'targeted'
       target.effectAge = 0
       input.value = ''
@@ -110,7 +142,19 @@ export function useGame(
       runBest.value = Math.max(runBest.value, combo.value)
       runXp.value += target.xp
       runCorrect.value++
-      score.value += 100 + Math.min(combo.value, 30) * 10
+      score.value += scoreForAnswer(combo.value, scoringInRush)
+      if (scoringInRush) rushRemaining.value = Math.min(RUSH_DURATION, rushRemaining.value + 0.35)
+      else {
+        ki.value = Math.min(KI_MAX, ki.value + kiForAnswer(combo.value))
+        if (ki.value >= KI_MAX) {
+          ki.value = 0
+          rushRemaining.value = RUSH_DURATION
+          announce('FURIA SAMURÁI · PUNTOS ×2', 2.2)
+        }
+      }
+      const recoveredHeart = shouldRecoverHeart(combo.value) && hp.value < 5
+      if (recoveredHeart) hp.value++
+      if (wave.value > waveBefore) announce(`OLEADA ${wave.value}`, 1.8)
       const successMessage =
         target.kana.type === 'kanji'
           ? target.prompt === 'meaning'
@@ -120,13 +164,14 @@ export function useGame(
             ? `¡Racha de ${combo.value}!`
             : '¡Bien hecho!'
       const itemBonus = Math.min(8, Math.max(0, itemStreak - 1) * 2)
-      feedback.value = `${successMessage}${itemBonus ? ` · Dominio +${itemBonus} XP` : ''}`
+      feedback.value = `${successMessage}${scoringInRush ? ' · Furia ×2' : ''}${itemBonus ? ` · Dominio +${itemBonus} XP` : ''}${recoveredHeart ? ' · Guardia perfecta: +1 vida' : ''}`
       animateHero('attack')
       onCorrect(target.masteryId, combo.value, target.xp)
       spawnIn = Math.min(spawnIn, 0.45)
     } else {
       const dangerous = [...active.value].sort((a, b) => b.y - a.y)[0]!
       combo.value = 0
+      if (!rushActive.value) ki.value = Math.max(0, ki.value - 12)
       wrongCount.value++
       runIncorrect.value++
       feedback.value = `Probá otra vez · ${dangerous.prompt === 'meaning' ? 'En español' : 'En romaji'}: ${dangerous.answers[0]}`
@@ -140,15 +185,19 @@ export function useGame(
       elapsed.value += dt
       spawnIn -= dt * speed.value
       heroTimer -= dt
-      if (heroTimer <= 0) heroState.value = 'idle'
+      noticeTimer -= dt
+      if (noticeTimer <= 0) arcadeNotice.value = ''
+      if (rushActive.value) rushRemaining.value = Math.max(0, rushRemaining.value - dt)
+      if (heroTimer <= 0) heroState.value = rushActive.value ? 'rush' : 'idle'
       for (const e of enemies.value) {
         if (e.state === 'falling') {
-          e.y += e.fallSpeed * dt * speed.value
+          e.y += e.fallSpeed * dt * speed.value * (rushActive.value ? 0.76 : 1)
           if (e.y >= 83) {
             e.state = 'missed'
             e.effectAge = 0
             hp.value = Math.max(0, hp.value - 1)
             combo.value = 0
+            if (!rushActive.value) ki.value = Math.max(0, ki.value - 18)
             runIncorrect.value++
             feedback.value = `${e.display} se escapó · ${e.prompt === 'meaning' ? 'Significado' : 'Lectura'}: ${e.answers[0]}`
             animateHero('hit')
@@ -203,6 +252,12 @@ export function useGame(
     speed,
     mastery,
     lessonIntro,
+    ki,
+    rushRemaining,
+    rushActive,
+    rushProgress,
+    wave,
+    arcadeNotice,
     runBest,
     runXp,
     runCorrect,

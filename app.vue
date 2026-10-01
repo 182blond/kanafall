@@ -30,7 +30,7 @@ const game = useGame(
   () => save.value.settings.kanjiPractice,
   () => save.value.settings.randomMode,
 )
-const { status, score, runBest, runXp, runCorrect, runIncorrect } = game
+const { status, score, runBest, runXp, runCorrect, runIncorrect, rushActive } = game
 const page = ref<'game' | 'progress' | 'settings'>('game'),
   resetRequested = ref(false),
   levelNotice = ref(''),
@@ -76,7 +76,7 @@ watch(
     levelNotice.value =
       Math.ceil(level / 2) > Math.ceil(before / 2)
         ? `¡Nuevas letras: ${currentGroup.value[1]}!`
-        : 'Nilo crece con vos.'
+        : 'Haru perfecciona su técnica.'
     game.animateHero('level-up')
     audio.play('level')
     if (noticeTimer) clearTimeout(noticeTimer)
@@ -105,6 +105,11 @@ watch(score, (value) => {
     save.value.statistics.bestScore = value
     progress.persist()
   }
+})
+watch(rushActive, (active) => {
+  if (!active) return
+  audio.play('level')
+  trackGameEvent('samurai_rush', { level: player.value.level })
 })
 async function start() {
   audio.unlock()
@@ -227,7 +232,7 @@ onUnmounted(() => {
         kanafall
         <span class="wordmark-kana" lang="ja">かな</span>
       </button>
-      <span>EL BOSQUE DE LAS LETRAS</span>
+      <span>EL DOJO DE LAS LETRAS</span>
       <div class="header-actions">
         <span class="level-badge">✧ Nivel {{ player.level }}</span>
         <nav class="quick-nav" aria-label="Accesos rápidos">
@@ -286,7 +291,7 @@ onUnmounted(() => {
             </button>
             <h1>
               Kanafall
-              <span>かなの森</span>
+              <span>かなの道</span>
             </h1>
             <div v-if="save.settings.script === 'kanji'" class="kanji-practice-picker">
               <span>¿QUÉ QUERÉS PRACTICAR?</span>
@@ -313,17 +318,17 @@ onUnmounted(() => {
               Puede aparecer cualquier contenido.
             </p>
             <p v-else-if="save.settings.script !== 'kanji'" class="menu-subtitle">
-              Un pequeño espíritu.
+              Un pequeño samurái.
               <br />
-              Un mundo por aprender.
+              Un dojo por conquistar.
             </p>
             <div class="companion-stage">
               <div class="orbit"></div>
               <Spirit :level="player.level" />
               <span>
-                NILO
+                HARU
                 <i>·</i>
-                TU COMPAÑERO
+                TU GUARDIÁN
               </span>
             </div>
             <button class="primary" :disabled="!ready" @click="start">
@@ -339,7 +344,7 @@ onUnmounted(() => {
                     ? 'Practicar significados'
                     : 'Practicar lecturas'
                   : save.statistics.runs
-                    ? 'Volver al bosque'
+                    ? 'Volver al dojo'
                     : 'Jugar'
               }}
               <span>↗</span>
@@ -365,13 +370,14 @@ onUnmounted(() => {
               }}
               <kbd>Enter ↵</kbd>
             </p>
+            <p class="arcade-hook"><span>⚔</span> Encadená aciertos, cargá Ki y activá Furia ×2.</p>
             <button class="reset-link" @click="openPage('settings', true)">Restablecer guardado</button>
           </div>
         </div>
         <div v-else-if="status === 'paused' || status === 'over'" class="overlay">
           <div class="menu-card pause-card">
             <p class="eyebrow">
-              {{ status === 'paused' ? 'EL BOSQUE PUEDE ESPERAR' : 'CADA INTENTO TE HACE CRECER' }}
+              {{ status === 'paused' ? 'EL DOJO PUEDE ESPERAR' : 'CADA INTENTO AFILA TU TÉCNICA' }}
             </p>
             <h1>{{ status === 'paused' ? 'Un respiro' : 'Buen viaje' }}</h1>
             <Spirit :state="status === 'over' ? 'game-over' : 'idle'" :level="player.level" />
@@ -379,7 +385,7 @@ onUnmounted(() => {
               {{
                 status === 'paused'
                   ? 'Tu aventura sigue justo donde la dejaste.'
-                  : 'Nilo descansa. Todo lo aprendido queda con vos.'
+                  : 'Haru descansa. Todo lo aprendido queda con vos.'
               }}
             </p>
             <div v-if="status === 'over'" class="run-summary">
@@ -425,7 +431,7 @@ onUnmounted(() => {
           <b lang="ja">{{ nextGroup[1] }}</b>
           · Nv. {{ Math.ceil(player.level / 2) * 2 + 1 }}
         </span>
-        <span v-else>Las 46 letras están en tu bosque.</span>
+        <span v-else>Las 46 letras están en tu dojo.</span>
       </footer>
     </template>
     <ProgressScreen
