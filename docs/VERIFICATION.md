@@ -65,6 +65,8 @@ Verified again on the final production build:
 - Browser console check after menu, play, correct-answer and Rush states: no errors or warnings.
 - Custom-mode check: selected only `あ`, `う` and `き`, saved the combination, played nine consecutive targets and confirmed every target belonged to that exact subset. Reload restored Custom mode and its three selections; switching to Katakana retained that section's independent Ruta mode.
 - Custom mobile check: the editor has no horizontal overflow, keeps its header, presets and save controls fixed, and scrolls only the 46-item selection area.
+- Stable-layout desktop check: switching between Ruta and Random and between Hiragana and Kanji kept the menu card at 660 px high and preserved identical vertical coordinates for the title, companion, primary action and navigation links.
+- Stable-layout mobile check at 390 × 844: all four combinations kept the same card, mode controls, title, context, companion and primary-action coordinates, with no horizontal overflow or browser-console errors.
 
 Audio synthesis paths ran without browser errors, but subjective sound quality was not independently listened to. The destructive reset confirmation was inspected in source and its save defaults tested; no pre-existing user save was deleted during browser testing. The delivered browser starts at level 1 with one test answer (10 XP).
 

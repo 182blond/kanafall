@@ -402,40 +402,42 @@ onUnmounted(() => {
               Kanafall
               <span>かなの道</span>
             </h1>
-            <div v-if="save.settings.script === 'kanji'" class="kanji-practice-picker">
-              <span>¿QUÉ QUERÉS PRACTICAR?</span>
-              <div role="group" aria-label="Tipo de práctica de kanji">
-                <button
-                  :class="{ active: save.settings.kanjiPractice === 'meaning' }"
-                  :aria-pressed="save.settings.kanjiPractice === 'meaning'"
-                  @click="selectKanjiPractice('meaning')"
-                >
-                  Significados <small>Español</small>
-                </button>
-                <button
-                  :class="{ active: save.settings.kanjiPractice === 'reading' }"
-                  :aria-pressed="save.settings.kanjiPractice === 'reading'"
-                  @click="selectKanjiPractice('reading')"
-                >
-                  Lecturas <small>Romaji</small>
-                </button>
+            <div class="session-context">
+              <div v-if="save.settings.script === 'kanji'" class="kanji-practice-picker">
+                <span>¿QUÉ QUERÉS PRACTICAR?</span>
+                <div role="group" aria-label="Tipo de práctica de kanji">
+                  <button
+                    :class="{ active: save.settings.kanjiPractice === 'meaning' }"
+                    :aria-pressed="save.settings.kanjiPractice === 'meaning'"
+                    @click="selectKanjiPractice('meaning')"
+                  >
+                    Significados <small>Español</small>
+                  </button>
+                  <button
+                    :class="{ active: save.settings.kanjiPractice === 'reading' }"
+                    :aria-pressed="save.settings.kanjiPractice === 'reading'"
+                    @click="selectKanjiPractice('reading')"
+                  >
+                    Lecturas <small>Romaji</small>
+                  </button>
+                </div>
               </div>
+              <p v-else-if="practiceMode === 'random'" class="menu-subtitle">
+                Todo {{ save.settings.script }} mezclado.
+                <br />
+                Todos con la misma frecuencia.
+              </p>
+              <p v-else-if="practiceMode === 'custom'" class="menu-subtitle custom-subtitle">
+                Tu combinación
+                <br />
+                <span lang="ja">{{ customPreview }}</span>
+              </p>
+              <p v-else class="menu-subtitle">
+                Un pequeño samurái.
+                <br />
+                Un dojo por conquistar.
+              </p>
             </div>
-            <p v-if="practiceMode === 'random'" class="menu-subtitle random-subtitle">
-              {{ save.settings.script === 'kanji' ? 'Todas las palabras de kanji.' : `Todo ${save.settings.script} mezclado.` }}
-              <br />
-              Puede aparecer cualquier contenido.
-            </p>
-            <p v-else-if="practiceMode === 'custom'" class="menu-subtitle custom-subtitle">
-              Tu combinación
-              <br />
-              <span lang="ja">{{ customPreview }}</span>
-            </p>
-            <p v-else-if="save.settings.script !== 'kanji'" class="menu-subtitle">
-              Un pequeño samurái.
-              <br />
-              Un dojo por conquistar.
-            </p>
             <div class="companion-stage">
               <div class="orbit"></div>
               <Spirit :level="player.level" />
